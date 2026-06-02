@@ -82,17 +82,6 @@ class StalkerClient {
     try { return JSON.parse(text); }
     catch(e) { return { js: text }; }
   }
-    }
-    for (var k in params) {
-      if (params.hasOwnProperty(k)) u.searchParams.set(k, params[k]);
-    }
-
-    this.requestCount++;
-    var resp = await this._fetch(u.toString(), this.mac, this.token);
-    var text = await resp.text();
-    try { return JSON.parse(text); }
-    catch(e) { return { js: text }; }
-  }
 
   async authenticate() {
     await this._resolveBase();

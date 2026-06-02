@@ -207,7 +207,7 @@ class StalkerClient {
     });
   }
 
-  async createLink(cmd) {
+  async createLink(cmd, itemType) {
     function stripPrefix(s) {
       var m = s.match(/^(?:ffmpeg|auto|ffrt|ff)\s+(.+)/i);
       return m ? m[1].trim() : s.trim();
@@ -224,7 +224,7 @@ class StalkerClient {
     var cleaned = stripPrefix(cmd);
     /* Always call create_link even for HTTP URLs - portal needs it for token/stream URL */
     try {
-      var params = { type: 'itv', cmd: cleaned, disable_ad: '0', download: '0' };
+      var params = { type: itemType || 'itv', cmd: cleaned, disable_ad: '0', download: '0' };
       var url = this._buildUrl(this.portalUrl, { action: 'create_link', JsHttpRequest: '1-xml', mac: this.mac });
       for (var k in params) {
         if (params.hasOwnProperty(k)) {

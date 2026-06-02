@@ -338,7 +338,7 @@ async function playItem(item, mode, all) {
 
   try {
     if (state.clientType === 'stalker' && cmd && state.client && state.client.createLink) {
-      url = await state.client.createLink(cmd);
+      url = await state.client.createLink(cmd, mode === 'tv' ? 'itv' : 'vod');
     }
   } catch(e) {}
 

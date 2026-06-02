@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>sidiptv</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="css/style.css">
+<script src="https://cdn.jsdelivr.net/npm/mpegts.js@1.7.3/dist/mpegts.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.8/dist/hls.min.js"></script>
+</head>
+<body>
+<div class="app" id="app">
+  <!-- Sidebar -->
+  <div class="sb" id="sb">
+    <div class="sb-h">sidi<span>ptv</span></div>
+    <div class="sb-n" id="sb-n">
+      <button class="act" data-view="dash"><span class="ic">🏠</span> Dashboard</button>
+      <button data-view="tv"><span class="ic">📡</span> Live TV</button>
+      <button data-view="movies"><span class="ic">🎬</span> Movies</button>
+      <button data-view="series"><span class="ic">📺</span> Series</button>
+      <div class="div"></div>
+      <button data-view="favs"><span class="ic">⭐</span> Favorites</button>
+    </div>
+    <div class="sb-f" id="sb-f">
+      <div class="src-list" id="src-list"></div>
+      <button id="add-src">+ Add Source</button>
+    </div>
+  </div>
+
+  <!-- Main content -->
+  <div class="mn" id="mn">
+    <div class="mn-h" id="mn-h">
+      <h1 id="view-title">Dashboard</h1>
+      <span class="sub" id="view-sub"></span>
+      <input id="search" type="text" placeholder="Search...">
+    </div>
+    <div class="mn-c" id="mn-c"></div>
+  </div>
+</div>
+
+<!-- Player overlay -->
+<div class="ply" id="ply">
+  <video id="vid" playsinline></video>
+  <div class="ld" id="ld"><div class="sp"></div></div>
+  <div class="bar">
+    <div>
+      <button id="ply-back">✕</button>
+      <button id="ply-info" style="font-size:13px;opacity:.6"></button>
+    </div>
+  </div>
+  <div class="b-bot" id="b-bot">
+    <button id="ply-play">▶</button>
+    <div class="pr" id="pr"><div class="fill" id="pr-fill"></div></div>
+    <span class="tm" id="tm">0:00</span>
+    <button id="ply-cc">📄</button>
+    <button id="ply-fs">⛶</button>
+  </div>
+</div>
+
+<!-- Add source modal -->
+<div class="mod" id="mod">
+  <div class="mod-b">
+    <h2>Add Source</h2>
+    <p class="sub">Connect to an IPTV provider</p>
+    <div class="mod-tabs" id="mod-tabs">
+      <button class="act" data-type="stalker">Stalker Portal</button>
+      <button data-type="xtream">Xtream Codes</button>
+      <button data-type="m3u">M3U URL</button>
+    </div>
+    <div id="mod-form"></div>
+    <div class="st" id="mod-st"></div>
+  </div>
+</div>
+
+<script src="js/stalker.js"></script>
+<script src="js/xtream.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

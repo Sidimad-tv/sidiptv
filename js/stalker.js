@@ -153,16 +153,21 @@ class StalkerClient {
       var params = { type: 'itv', force_ch_link_check: '0', sortby: 'number', p: String(page) };
       if (genreId && genreId !== 'all') { params.genre = genreId; params.category = genreId; }
       else { params.genre = '*'; params.category = '*'; }
-      var data = await this._request('get_ordered_list', params);
-      if (data && data.js) {
-        var list = Array.isArray(data.js) ? data.js : (data.js.data || []);
-        for (var ch of list) all.push(ch);
-        var total = Number(data.js.total_items || data.total_items) || 0;
-        var max = Number(data.js.max_page_items || data.max_page_items) || list.length;
-        hasMore = page < (max > 0 ? Math.ceil(total / max) : 1) && list.length > 0;
-        page++;
-        if (page > 20) hasMore = false;
-      } else hasMore = false;
+      try {
+        var data = await this._request('get_ordered_list', params);
+        if (data && data.js) {
+          var list = Array.isArray(data.js) ? data.js : (data.js.data || []);
+          for (var ch of list) all.push(ch);
+          var total = Number(data.js.total_items || data.total_items) || 0;
+          var max = Number(data.js.max_page_items || data.max_page_items) || list.length;
+          hasMore = page < (max > 0 ? Math.ceil(total / max) : 1) && list.length > 0;
+          page++;
+          if (page > 20) hasMore = false;
+        } else hasMore = false;
+      } catch(e) {
+        console.log('[Stalker] getChannels page fetch error:', e.message);
+        hasMore = false;
+      }
     }
     console.log('[Stalker] getChannels total:', all.length);
     return all.map(function(ch) {
@@ -181,16 +186,21 @@ class StalkerClient {
     while (hasMore) {
       var params = { type: type || 'vod', p: String(page) };
       if (categoryId && categoryId !== 'all') params.category = categoryId;
-      var data = await this._request('get_ordered_list', params);
-      if (data && data.js) {
-        var list = Array.isArray(data.js) ? data.js : (data.js.data || []);
-        for (var m of list) all.push(m);
-        var total = Number(data.js.total_items || data.total_items) || 0;
-        var max = Number(data.js.max_page_items || data.max_page_items) || list.length;
-        hasMore = page < (max > 0 ? Math.ceil(total / max) : 1) && list.length > 0;
-        page++;
-        if (page > 20) hasMore = false;
-      } else hasMore = false;
+      try {
+        var data = await this._request('get_ordered_list', params);
+        if (data && data.js) {
+          var list = Array.isArray(data.js) ? data.js : (data.js.data || []);
+          for (var m of list) all.push(m);
+          var total = Number(data.js.total_items || data.total_items) || 0;
+          var max = Number(data.js.max_page_items || data.max_page_items) || list.length;
+          hasMore = page < (max > 0 ? Math.ceil(total / max) : 1) && list.length > 0;
+          page++;
+          if (page > 20) hasMore = false;
+        } else hasMore = false;
+      } catch(e) {
+        console.log('[Stalker] getVodList page fetch error:', e.message);
+        hasMore = false;
+      }
     }
     return all.map(function(m) {
       return { id: m.id, name: m.name, url: m.cmd, logo: m.screenshot_uri || m.logo, description: m.description, year: m.year, genres: m.genres_str };
@@ -212,10 +222,7 @@ class StalkerClient {
       return s;
     }
     var cleaned = stripPrefix(cmd);
-    if (cleaned.indexOf('http://') === 0 || cleaned.indexOf('https://') === 0) {
-      return rewriteLocalhost(cleaned, this.portalUrl);
-    }
-    /* create_link - cmd param NOT URL-encoded */
+    /* Always call create_link even for HTTP URLs - portal needs it for token/stream URL */
     try {
       var params = { type: 'itv', cmd: cleaned, disable_ad: '0', download: '0' };
       var url = this._buildUrl(this.portalUrl, { action: 'create_link', JsHttpRequest: '1-xml', mac: this.mac });

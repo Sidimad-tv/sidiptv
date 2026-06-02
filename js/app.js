@@ -41,7 +41,10 @@ function isTS(u) { return /\.ts\b|extension=ts|\.m2ts/i.test(u); }
 function pUrl(u) {
   if (!u || (u.indexOf('http:') !== 0 && u.indexOf('https:') !== 0)) return u;
   if (location.protocol !== 'https:' || u.indexOf('https:') === 0) return u;
-  return location.origin + '/api/stalker/proxy?url=' + encodeURIComponent(u);
+  var pu = location.origin + '/api/stalker/proxy?url=' + encodeURIComponent(u);
+  if (state.client && state.client.mac) pu += '&mac=' + encodeURIComponent(state.client.mac);
+  if (state.client && state.client.token) pu += '&token=' + encodeURIComponent(state.client.token);
+  return pu;
 }
 
 /* sidebar nav */

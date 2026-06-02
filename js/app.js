@@ -88,6 +88,7 @@ function renderSources() {
     d.innerHTML = '<span class="dot" style="background:' + (colors[s.type] || '#555') + '"></span>' + esc(s.name || s.type + ' ' + (i + 1)) + '<span class="del" data-idx="' + i + '">✕</span>';
     d.addEventListener('click', function(e) {
       if (e.target.classList.contains('del')) return;
+      state.view = 'tv';
       activateSource(i);
     });
     d.querySelector('.del').addEventListener('click', function(e) {
@@ -424,7 +425,7 @@ function renderDash() {
   if (ss.length) {
     html = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px">';
     ss.forEach(function(s, i) {
-      html += '<div style="background:#1a1a22;border-radius:10px;padding:16px;cursor:pointer" onclick="activateSource(' + i + ')">' +
+      html += '<div style="background:#1a1a22;border-radius:10px;padding:16px;cursor:pointer" onclick="state.view=\'tv\';activateSource(' + i + ')">' +
         '<div style="font-size:24px;margin-bottom:8px">' + (s.type === 'stalker' ? '📡' : s.type === 'xtream' ? '🔑' : '📋') + '</div>' +
         '<div style="font-weight:600">' + esc(s.name || s.type) + '</div>' +
         '<div style="font-size:11px;color:#7878a0;margin-top:4px">' + esc(s.type === 'stalker' ? s.portal : s.type === 'xtream' ? s.server : s.url) + '</div></div>';
@@ -534,7 +535,8 @@ async function saveModSource(type) {
     saveSources(ss);
     renderSources();
     setTimeout(closeMod, 600);
-    switchView('dash');
+    state.view = 'tv';
+    activateSource(ss.length - 1);
 
   } catch(e) {
     modSt.textContent = '✗ ' + e.message;

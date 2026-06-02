@@ -65,7 +65,7 @@ function switchView(view) {
   if (view === 'dash') { renderDash(); return; }
   if (view === 'favs') { renderFavs(); return; }
 
-  if (!state.activeSource) {
+  if (state.activeSource === null || state.activeSource === undefined) {
     mnC.innerHTML = '<div class="emp"><div class="ic">📡</div>Select a source from the sidebar</div>';
     return;
   }

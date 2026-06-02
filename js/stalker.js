@@ -1,9 +1,34 @@
+/* SHA1 implementation for prehash */
+function sha1(str) {
+  function rotl(n,b){return(n<<b)|(n>>>(32-b))}
+  function toHex(n){var h='';for(var i=7;i>=0;i--)h+='0123456789abcdef'.charAt((n>>>(i*4))&15);return h}
+  str=unescape(encodeURIComponent(str));
+  var words=[],i,bl=((str.length+8)>>6)+1;for(i=0;i<bl*16;i++)words[i]=0;
+  for(i=0;i<str.length;i++)words[i>>2]|=str.charCodeAt(i)<<(24-(i%4)*8);
+  words[i>>2]|=128<<(24-(i%4)*8);words[bl*16-1]=str.length*8;
+  var h0=0x67452301,h1=0xEFCDAB89,h2=0x98BADCFE,h3=0x10325476,h4=0xC3D2E1F0;
+  for(i=0;i<words.length;i+=16){
+    var a=h0,b=h1,c=h2,d=h3,e=h4,w=words.slice(i,i+16),f,k,t;
+    for(var j=0;j<80;j++){
+      if(j>=16){t=w[j-3]^w[j-8]^w[j-14]^w[j-16];w[j]=rotl(t,1)}
+      if(j<20){f=(b&c)|((~b)&d);k=0x5A827999}
+      else if(j<40){f=b^c^d;k=0x6ED9EBA1}
+      else if(j<60){f=(b&c)|(b&d)|(c&d);k=0x8F1BBCDC}
+      else{f=b^c^d;k=0xCA62C1D6}
+      t=rotl(a,5)+f+e+k+w[j];e=d;d=c;c=rotl(b,30);b=a;a=t;
+    }
+    h0+=a;h1+=b;h2+=c;h3+=d;h4+=e;
+  }
+  return toHex(h0)+toHex(h1)+toHex(h2)+toHex(h3)+toHex(h4);
+}
+
 class StalkerClient {
   constructor(portalUrl, mac) {
     this.rawUrl = portalUrl.replace(/\/+$/, '');
     this.portalUrl = this.rawUrl;
     this.mac = mac;
     this.token = null;
+    this.random = null;
     this.requestCount = 0;
   }
 
@@ -24,6 +49,19 @@ class StalkerClient {
     var resp = await fetch(fullUrl);
     if (!resp.ok) throw new Error('HTTP ' + resp.status);
     return resp;
+  }
+
+  /* Build URL manually to avoid encoding cmd param */
+  _buildUrl(base, params) {
+    var url = base;
+    var sep = base.indexOf('?') === -1 ? '?' : '&';
+    for (var k in params) {
+      if (params.hasOwnProperty(k)) {
+        url += sep + k + '=' + (k === 'cmd' ? params[k] : encodeURIComponent(params[k]));
+        sep = '&';
+      }
+    }
+    return url;
   }
 
   async _resolveBase() {
@@ -50,34 +88,27 @@ class StalkerClient {
 
     for (var c of uniq) {
       try {
-        var testUrl = c + '?type=stb&prehash=0&action=handshake';
-        var resp = await this._fetch(testUrl, this.mac);
-        var text = await resp.text();
-        console.log('[Stalker] Trying base:', c, '- response:', text.slice(0,200));
+        var testUrl = this._buildUrl(c, { type: 'stb', prehash: sha1(this.mac.toUpperCase()).toUpperCase(), action: 'handshake', JsHttpRequest: '1-xml' });
+        var text = await (await this._fetch(testUrl, this.mac)).text();
         var data = JSON.parse(text);
         var token = (data.js && data.js.token) || data.token;
         if (token) { console.log('[Stalker] Base resolved:', c); this.portalUrl = c; return; }
-      } catch(e) { console.log('[Stalker] Base failed:', c, e.message); }
+      } catch(e) {}
     }
-    console.log('[Stalker] Using fallback base');
     this.portalUrl = this.rawUrl + '/server/load.php';
   }
 
   async _request(action, extraParams) {
-    var u = new URL(this.portalUrl);
-    var params = { action: action };
+    var params = { action: action, JsHttpRequest: '1-xml' };
+    params.mac = this.mac;
     if (extraParams) {
       for (var k in extraParams) {
         if (extraParams.hasOwnProperty(k)) params[k] = extraParams[k];
       }
     }
-    params.mac = this.mac;
-    for (var k in params) {
-      if (params.hasOwnProperty(k)) u.searchParams.set(k, params[k]);
-    }
-
+    var url = this._buildUrl(this.portalUrl, params);
     this.requestCount++;
-    var resp = await this._fetch(u.toString(), this.mac, this.token);
+    var resp = await this._fetch(url, this.mac, this.token);
     var text = await resp.text();
     try { return JSON.parse(text); }
     catch(e) { return { js: text }; }
@@ -85,13 +116,28 @@ class StalkerClient {
 
   async authenticate() {
     await this._resolveBase();
-    var handshake = await this._request('handshake', { type: 'stb', prehash: '0' });
+
+    /* Handshake with prehash (SHA1 of MAC uppercase) */
+    var prehash = sha1(this.mac.toUpperCase()).toUpperCase();
+    var handshake = await this._request('handshake', { type: 'stb', prehash: prehash });
     if (handshake && handshake.js && handshake.js.token) {
       this.token = handshake.js.token;
+      this.random = handshake.js.random || '';
     } else {
       throw new Error('Failed to get token');
     }
-    try { await this._request('get_profile', { type: 'stb' }); } catch(e) {}
+
+    /* Get profile with auth_second_step */
+    try {
+      await this._request('get_profile', {
+        type: 'stb', hd: '1', auth_second_step: '1', not_valid_token: '0', video_out: 'hdmi',
+        num_banks: '2', stb_type: '', sn: this.mac.replace(/:/g, '').toLowerCase(),
+        device_id: this.mac.replace(/:/g, '').toLowerCase() + '0000',
+        device_id2: '0000' + this.mac.replace(/:/g, '').toLowerCase(),
+        signature: this.mac.replace(/:/g, '').toLowerCase(),
+      });
+    } catch(e) {}
+
     return { success: true };
   }
 
@@ -104,29 +150,27 @@ class StalkerClient {
   async getChannels(genreId) {
     var all = [], page = 1, hasMore = true;
     while (hasMore) {
-      var params = { type: 'itv', force_ch_link_check: 0, sortby: 'number', p: page };
-      if (genreId && genreId !== 'all') params.genre = genreId;
+      var params = { type: 'itv', force_ch_link_check: '0', sortby: 'number', p: String(page) };
+      if (genreId && genreId !== 'all') { params.genre = genreId; params.category = genreId; }
+      else { params.genre = '*'; params.category = '*'; }
       var data = await this._request('get_ordered_list', params);
-      console.log('[Stalker] getChannels page', page, ':', data && data.js ? 'has js' : 'no js', data && data.total_items ? data.total_items + ' total' : '');
       if (data && data.js) {
         var list = Array.isArray(data.js) ? data.js : (data.js.data || []);
-        console.log('[Stalker] getChannels got', list.length, 'items on page', page);
         for (var ch of list) all.push(ch);
         var total = Number(data.total_items) || 0;
         var max = Number(data.max_page_items) || list.length;
         hasMore = page < (max > 0 ? Math.ceil(total / max) : 1) && list.length > 0;
         page++;
         if (page > 20) hasMore = false;
-      } else { console.log('[Stalker] getChannels: no data.js', data); hasMore = false; }
+      } else hasMore = false;
     }
-    console.log('[Stalker] getChannels total:', all.length);
     return all.map(function(ch) {
       return { id: ch.id, number: ch.number, name: ch.name, url: ch.cmd, logo: ch.logo || ch.logo_src || ch.tv_logo, genre_id: ch.tv_genre_id };
     });
   }
 
   async getVodCategories(type) {
-    var data = await this._request('get_genres', { type: type || 'vod' });
+    var data = await this._request('get_categories', { type: type || 'vod' });
     if (data && data.js) return Array.isArray(data.js) ? data.js : (data.js.data || []);
     return [];
   }
@@ -134,7 +178,7 @@ class StalkerClient {
   async getVodList(categoryId, type) {
     var all = [], page = 1, hasMore = true;
     while (hasMore) {
-      var params = { type: type || 'vod', p: page };
+      var params = { type: type || 'vod', p: String(page) };
       if (categoryId && categoryId !== 'all') params.category = categoryId;
       var data = await this._request('get_ordered_list', params);
       if (data && data.js) {
@@ -170,8 +214,19 @@ class StalkerClient {
     if (cleaned.indexOf('http://') === 0 || cleaned.indexOf('https://') === 0) {
       return rewriteLocalhost(cleaned, this.portalUrl);
     }
+    /* create_link - cmd param NOT URL-encoded */
     try {
-      var data = await this._request('create_link', { type: 'itv', cmd: cleaned, forced_storage: '0', disable_ad: '0', download: '0', force: '1', play_token: '', cache: '1' });
+      var params = { type: 'itv', cmd: cleaned, disable_ad: '0', download: '0' };
+      var url = this._buildUrl(this.portalUrl, { action: 'create_link', JsHttpRequest: '1-xml', mac: this.mac });
+      for (var k in params) {
+        if (params.hasOwnProperty(k)) {
+          url += '&' + k + '=' + (k === 'cmd' ? params[k] : encodeURIComponent(params[k]));
+        }
+      }
+      this.requestCount++;
+      var resp = await this._fetch(url, this.mac, this.token);
+      var text = await resp.text();
+      var data = JSON.parse(text);
       if (data && data.js && data.js.cmd) {
         return stripPrefix(rewriteLocalhost(data.js.cmd, this.portalUrl));
       }

@@ -53,11 +53,13 @@ class StalkerClient {
         var testUrl = c + '?type=stb&prehash=0&action=handshake';
         var resp = await this._fetch(testUrl, this.mac);
         var text = await resp.text();
+        console.log('[Stalker] Trying base:', c, '- response:', text.slice(0,200));
         var data = JSON.parse(text);
         var token = (data.js && data.js.token) || data.token;
-        if (token) { this.portalUrl = c; return; }
-      } catch(e) {}
+        if (token) { console.log('[Stalker] Base resolved:', c); this.portalUrl = c; return; }
+      } catch(e) { console.log('[Stalker] Base failed:', c, e.message); }
     }
+    console.log('[Stalker] Using fallback base');
     this.portalUrl = this.rawUrl + '/server/load.php';
   }
 
@@ -68,6 +70,18 @@ class StalkerClient {
       for (var k in extraParams) {
         if (extraParams.hasOwnProperty(k)) params[k] = extraParams[k];
       }
+    }
+    params.mac = this.mac;
+    for (var k in params) {
+      if (params.hasOwnProperty(k)) u.searchParams.set(k, params[k]);
+    }
+
+    this.requestCount++;
+    var resp = await this._fetch(u.toString(), this.mac, this.token);
+    var text = await resp.text();
+    try { return JSON.parse(text); }
+    catch(e) { return { js: text }; }
+  }
     }
     for (var k in params) {
       if (params.hasOwnProperty(k)) u.searchParams.set(k, params[k]);
@@ -104,16 +118,19 @@ class StalkerClient {
       var params = { type: 'itv', force_ch_link_check: 0, sortby: 'number', p: page };
       if (genreId && genreId !== 'all') params.genre = genreId;
       var data = await this._request('get_ordered_list', params);
+      console.log('[Stalker] getChannels page', page, ':', data && data.js ? 'has js' : 'no js', data && data.total_items ? data.total_items + ' total' : '');
       if (data && data.js) {
         var list = Array.isArray(data.js) ? data.js : (data.js.data || []);
+        console.log('[Stalker] getChannels got', list.length, 'items on page', page);
         for (var ch of list) all.push(ch);
         var total = Number(data.total_items) || 0;
         var max = Number(data.max_page_items) || list.length;
         hasMore = page < (max > 0 ? Math.ceil(total / max) : 1) && list.length > 0;
         page++;
         if (page > 20) hasMore = false;
-      } else hasMore = false;
+      } else { console.log('[Stalker] getChannels: no data.js', data); hasMore = false; }
     }
+    console.log('[Stalker] getChannels total:', all.length);
     return all.map(function(ch) {
       return { id: ch.id, number: ch.number, name: ch.name, url: ch.cmd, logo: ch.logo || ch.logo_src || ch.tv_logo, genre_id: ch.tv_genre_id };
     });

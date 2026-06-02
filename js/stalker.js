@@ -157,13 +157,14 @@ class StalkerClient {
       if (data && data.js) {
         var list = Array.isArray(data.js) ? data.js : (data.js.data || []);
         for (var ch of list) all.push(ch);
-        var total = Number(data.total_items) || 0;
-        var max = Number(data.max_page_items) || list.length;
+        var total = Number(data.js.total_items || data.total_items) || 0;
+        var max = Number(data.js.max_page_items || data.max_page_items) || list.length;
         hasMore = page < (max > 0 ? Math.ceil(total / max) : 1) && list.length > 0;
         page++;
         if (page > 20) hasMore = false;
       } else hasMore = false;
     }
+    console.log('[Stalker] getChannels total:', all.length);
     return all.map(function(ch) {
       return { id: ch.id, number: ch.number, name: ch.name, url: ch.cmd, logo: ch.logo || ch.logo_src || ch.tv_logo, genre_id: ch.tv_genre_id };
     });
@@ -184,8 +185,8 @@ class StalkerClient {
       if (data && data.js) {
         var list = Array.isArray(data.js) ? data.js : (data.js.data || []);
         for (var m of list) all.push(m);
-        var total = Number(data.total_items) || 0;
-        var max = Number(data.max_page_items) || list.length;
+        var total = Number(data.js.total_items || data.total_items) || 0;
+        var max = Number(data.js.max_page_items || data.max_page_items) || list.length;
         hasMore = page < (max > 0 ? Math.ceil(total / max) : 1) && list.length > 0;
         page++;
         if (page > 20) hasMore = false;

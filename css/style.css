@@ -73,16 +73,17 @@ input,button,select,textarea{font:inherit}
 .ply{position:fixed;inset:0;z-index:100;background:#000;display:none;flex-direction:column}
 .ply.show{display:flex}
 .ply video{width:100%;height:100%;object-fit:contain;flex:1}
-.ply .bar{position:absolute;top:0;left:0;right:0;display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:linear-gradient(#000c,transparent);z-index:10}
+.ply .bar{position:absolute;top:0;left:0;right:0;display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:linear-gradient(#000c,transparent);z-index:10;transition:opacity .3s}
 .ply .bar button{background:none;border:none;color:#fff;font-size:18px;cursor:pointer;padding:6px;opacity:.8}
 .ply .bar button:hover{opacity:1}
-.ply .b-bot{position:absolute;bottom:0;left:0;right:0;padding:10px 14px;background:linear-gradient(transparent,#000c);z-index:10;display:flex;align-items:center;gap:10px}
+.ply .b-bot{position:absolute;bottom:0;left:0;right:0;padding:10px 14px;background:linear-gradient(transparent,#000c);z-index:10;display:flex;align-items:center;gap:10px;transition:opacity .3s}
 .ply .b-bot button{background:none;border:none;color:#fff;font-size:16px;cursor:pointer;padding:4px;opacity:.7}
 .ply .b-bot button:hover{opacity:1}
 .ply .b-bot .pr{flex:1;height:4px;background:#333;border-radius:2px;cursor:pointer;position:relative}
 .ply .b-bot .pr .fill{height:100%;background:#00d4a0;border-radius:2px;width:0}
-.ply .b-bot .tm{font-size:11px;color:#888}
+.ply .b-bot .tm{font-size:11px;color:#888;min-width:80px;text-align:center}
 .ply .ld{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:5}
+.ply .ld.hidden{display:none}
 .ply .ld .sp{width:36px;height:36px;border:3px solid #333;border-top-color:#00d4a0;border-radius:50%;animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 

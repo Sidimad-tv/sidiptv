@@ -1,0 +1,29 @@
+- generic [ref=e2]:
+  - generic [ref=e3]:
+    - generic [ref=e4]: sidiptv
+    - generic [ref=e5]:
+      - button "🏠 Dashboard" [ref=e6] [cursor=pointer]:
+        - generic [ref=e7]: 🏠
+        - text: Dashboard
+      - button "📡 Live TV" [ref=e8] [cursor=pointer]:
+        - generic [ref=e9]: 📡
+        - text: Live TV
+      - button "🎬 Movies" [ref=e10] [cursor=pointer]:
+        - generic [ref=e11]: 🎬
+        - text: Movies
+      - button "📺 Series" [ref=e12] [cursor=pointer]:
+        - generic [ref=e13]: 📺
+        - text: Series
+      - button "⭐ Favorites" [ref=e15] [cursor=pointer]:
+        - generic [ref=e16]: ⭐
+        - text: Favorites
+    - button "+ Add Source" [ref=e18] [cursor=pointer]
+  - generic [ref=e19]:
+    - generic [ref=e20]:
+      - heading "Dashboard" [level=1] [ref=e21]
+      - generic [ref=e22]: 0 sources
+      - textbox "Search..." [ref=e23]
+    - generic [ref=e25]:
+      - generic [ref=e26]: 📺
+      - heading "Welcome to sidiptv" [level=2] [ref=e27]
+      - paragraph [ref=e28]: Add your IPTV source to get started. Supports Stalker Portal, Xtream Codes, and M3U playlists.

@@ -38,13 +38,13 @@ class StalkerClient {
   }
 
   _proxyUrl() {
-    var h = window.location.hostname;
-    return (h.indexOf('vercel') !== -1 || this._isLocal()) ? '' : 'https://sidiptv.vercel.app';
+    if (this._isLocal()) return '';
+    return window.location.origin;
   }
 
   async _fetch(url, mac, token) {
-    var proxy = this._proxyUrl();
-    var fullUrl = proxy + '/api/stalker/proxy?url=' + encodeURIComponent(url) + '&mac=' + encodeURIComponent(mac || this.mac);
+    var origin = this._isLocal() ? '' : window.location.origin;
+    var fullUrl = origin + '/api/stalker/proxy?url=' + encodeURIComponent(url) + '&mac=' + encodeURIComponent(mac || this.mac);
     if (token) fullUrl += '&token=' + encodeURIComponent(token);
     var resp = await fetch(fullUrl);
     if (!resp.ok) throw new Error('HTTP ' + resp.status);
@@ -147,32 +147,63 @@ class StalkerClient {
     return [];
   }
 
-  async getChannels(genreId) {
-    var all = [], page = 1, hasMore = true;
-    while (hasMore) {
-      var params = { type: 'itv', force_ch_link_check: '0', sortby: 'number', p: String(page) };
-      if (genreId && genreId !== 'all') { params.genre = genreId; params.category = genreId; }
-      else { params.genre = '*'; params.category = '*'; }
+  async _fetchAllPages(action, params, pageKey, totalKey, maxKey) {
+    pageKey = pageKey || 'p';
+    totalKey = totalKey || 'total_items';
+    maxKey = maxKey || 'max_page_items';
+
+    /* First page to get total count */
+    var firstParams = {};
+    for (var k in params) firstParams[k] = params[k];
+    firstParams[pageKey] = '1';
+    var first = await this._request(action, firstParams);
+    var all = [];
+    if (!first || !first.js) return all;
+    var firstList = Array.isArray(first.js) ? first.js : (first.js.data || []);
+    for (var i of firstList) all.push(i);
+    if (!firstList.length) return all;
+
+    var total = Number(first.js[totalKey] || first[totalKey]) || 0;
+    var perPage = Number(first.js[maxKey] || first[maxKey]) || firstList.length;
+    if (perPage <= 0) perPage = firstList.length;
+    var totalPages = total > 0 ? Math.ceil(total / perPage) : 1;
+
+    /* If only 1 page, we're done */
+    if (totalPages <= 1) return all;
+
+    /* Sequential pagination with delay between requests to avoid portal overload */
+    for (var p = 2; p <= totalPages; p++) {
+      var pParams = {};
+      for (var k in params) pParams[k] = params[k];
+      pParams[pageKey] = String(p);
       try {
-        var data = await this._request('get_ordered_list', params);
+        var data = await this._request(action, pParams);
         if (data && data.js) {
           var list = Array.isArray(data.js) ? data.js : (data.js.data || []);
-          for (var ch of list) all.push(ch);
-          var total = Number(data.js.total_items || data.total_items) || 0;
-          var max = Number(data.js.max_page_items || data.max_page_items) || list.length;
-          hasMore = page < (max > 0 ? Math.ceil(total / max) : 1) && list.length > 0;
-          page++;
-          if (page > 20) hasMore = false;
-        } else hasMore = false;
-      } catch(e) {
-        console.log('[Stalker] getChannels page fetch error:', e.message);
-        hasMore = false;
-      }
+          for (var i of list) all.push(i);
+          if (!list.length) break;
+        } else break;
+      } catch(e) { break; }
     }
+
+    return all;
+  }
+
+  async getChannels(genreId) {
+    var params = { type: 'itv', force_ch_link_check: '0', sortby: 'number' };
+    if (genreId && genreId !== 'all') { params.genre = genreId; params.category = genreId; }
+    else { params.genre = '*'; params.category = '*'; }
+    var all = await this._fetchAllPages('get_ordered_list', params);
     console.log('[Stalker] getChannels total:', all.length);
     return all.map(function(ch) {
       return { id: ch.id, number: ch.number, name: ch.name, url: ch.cmd, logo: ch.logo || ch.logo_src || ch.tv_logo, genre_id: ch.tv_genre_id };
     });
+  }
+
+  async getVodInfo(id, type) {
+    var data = await this._request('get_vod_info', { video_id: String(id), type: type || 'vod' });
+    if (data && data.js) return data.js;
+    return null;
   }
 
   async getVodCategories(type) {
@@ -182,37 +213,35 @@ class StalkerClient {
   }
 
   async getVodList(categoryId, type) {
-    var all = [], page = 1, hasMore = true;
-    while (hasMore) {
-      var params = { type: type || 'vod', p: String(page) };
-      if (categoryId && categoryId !== 'all') params.category = categoryId;
-      try {
-        var data = await this._request('get_ordered_list', params);
-        if (data && data.js) {
-          var list = Array.isArray(data.js) ? data.js : (data.js.data || []);
-          for (var m of list) all.push(m);
-          var total = Number(data.js.total_items || data.total_items) || 0;
-          var max = Number(data.js.max_page_items || data.max_page_items) || list.length;
-          hasMore = page < (max > 0 ? Math.ceil(total / max) : 1) && list.length > 0;
-          page++;
-          if (page > 20) hasMore = false;
-        } else hasMore = false;
-      } catch(e) {
-        console.log('[Stalker] getVodList page fetch error:', e.message);
-        hasMore = false;
-      }
-    }
+    var params = { type: type || 'vod' };
+    if (categoryId && categoryId !== 'all') params.category = categoryId;
+    var all = await this._fetchAllPages('get_ordered_list', params);
     return all.map(function(m) {
       return { id: m.id, name: m.name, url: m.cmd, logo: m.screenshot_uri || m.logo, description: m.description, year: m.year, genres: m.genres_str };
     });
   }
 
+  async getSeasonEpisodes(seriesId, seasonNum) {
+    var data = await this._request('get_ordered_list', {
+      type: 'series', video_id: String(seriesId), season: String(seasonNum), p: '1',
+    });
+    if (data && data.js) {
+      var list = Array.isArray(data.js) ? data.js : (data.js.data || []);
+      return list.map(function(ep) {
+        return { id: ep.id, name: ep.name, url: ep.cmd, logo: ep.screenshot_uri || ep.logo, season: seasonNum, episode: ep.series || ep.number || '' };
+      });
+    }
+    return [];
+  }
+
   async createLink(cmd, itemType) {
     function stripPrefix(s) {
+      if (!s) return '';
       var m = s.match(/^(?:ffmpeg|auto|ffrt|ff)\s+(.+)/i);
       return m ? m[1].trim() : s.trim();
     }
     function rewriteLocalhost(s, portal) {
+      if (!s) return s;
       if (s.indexOf('localhost') === -1 && s.indexOf('127.0.0.1') === -1) return s;
       try {
         var pu = new URL(portal);
@@ -222,7 +251,8 @@ class StalkerClient {
       return s;
     }
     var cleaned = stripPrefix(cmd);
-    /* Always call create_link even for HTTP URLs - portal needs it for token/stream URL */
+    if (!cleaned) return '';
+    /* If it already a full HTTP URL, try create_link but fall back quickly */
     try {
       var params = { type: itemType || 'itv', cmd: cleaned, disable_ad: '0', download: '0' };
       var url = this._buildUrl(this.portalUrl, { action: 'create_link', JsHttpRequest: '1-xml', mac: this.mac });
@@ -236,9 +266,21 @@ class StalkerClient {
       var text = await resp.text();
       var data = JSON.parse(text);
       if (data && data.js && data.js.cmd) {
-        return stripPrefix(rewriteLocalhost(data.js.cmd, this.portalUrl));
+        var result = stripPrefix(rewriteLocalhost(data.js.cmd, this.portalUrl));
+        if (result) return result;
       }
-      if (data && data.cmd) return stripPrefix(rewriteLocalhost(data.cmd, this.portalUrl));
+      if (data && data.cmd) {
+        var result = stripPrefix(rewriteLocalhost(data.cmd, this.portalUrl));
+        if (result) return result;
+      }
+    } catch(e) {}
+    /* Fallback: if cmd is already a URL, use it directly */
+    if (cleaned.indexOf('http://') === 0 || cleaned.indexOf('https://') === 0) return cleaned;
+    /* Try constructing from portal base */
+    try {
+      var pu = new URL(this.portalUrl);
+      var base = pu.origin + pu.pathname.substring(0, pu.pathname.lastIndexOf('/') + 1);
+      return base + cleaned;
     } catch(e) {}
     return cleaned;
   }

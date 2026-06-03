@@ -1,0 +1,23 @@
+[build]
+  functions = "api"
+  publish = "."
+
+[[redirects]]
+  from = "/api/stalker/proxy"
+  to = "/.netlify/functions/server"
+  status = 200
+
+[[redirects]]
+  from = "/api/xtream/stream"
+  to = "/.netlify/functions/server"
+  status = 200
+
+[[redirects]]
+  from = "/api/m3u/fetch"
+  to = "/.netlify/functions/server"
+  status = 200
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

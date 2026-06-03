@@ -13,6 +13,8 @@ var state = {
   favs: [],
   mpegtsPlayer: null,
   isPlaying: false,
+  seriesDetail: null, /* {series, seasons, episodes} */
+  seriesSeason: null,
 };
 
 /* dom refs */
@@ -20,11 +22,12 @@ var $ = function(id) { return document.getElementById(id); };
 var app = $('app'), sb = $('sb'), sbN = $('sb-n'), sbF = $('sb-f'), srcList = $('src-list'), addSrc = $('add-src');
 var mn = $('mn'), mnH = $('mn-h'), mnC = $('mn-c'), viewTitle = $('view-title'), viewSub = $('view-sub'), search = $('search');
 var ply = $('ply'), vid = $('vid'), ld = $('ld'), plyBack = $('ply-back'), plyInfo = $('ply-info');
-var bBot = $('b-bot'), plyPlay = $('ply-play'), prFill = $('pr-fill'), tm = $('tm'), plyCc = $('ply-cc'), plyFs = $('ply-fs');
+var bBot = $('b-bot'), plyPlay = $('ply-play'), prFill = $('pr-fill'), tm = $('tm'), plyVol = $('ply-vol'), plyFs = $('ply-fs');
 var mod = $('mod'), modTabs = $('mod-tabs'), modForm = $('mod-form'), modSt = $('mod-st');
 
 /* helpers */
 function esc(s) { return String(s).replace(/[&<>"']/g, function(c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+function safeUrl(s) { if (!s) return ''; return s.replace(/^http:\/\//i, '//'); }
 
 /* storage */
 function loadSources() {
@@ -37,11 +40,13 @@ function loadFavs() {
 function saveFavs(f) { localStorage.setItem('s_fav', JSON.stringify(f)); state.favs = f; }
 
 /* player helpers */
-function isTS(u) { return /\.ts\b|extension=ts|\.m2ts/i.test(u); }
+function isTS(u) { return /\.ts\b|extension=ts|\.m2ts|\.tsv/i.test(u); }
+function isM3U8(u) { return /\.m3u8|m3u8/i.test(u); }
 function pUrl(u) {
   if (!u || (u.indexOf('http:') !== 0 && u.indexOf('https:') !== 0)) return u;
   if (location.protocol !== 'https:' || u.indexOf('https:') === 0) return u;
-  var pu = location.origin + '/api/stalker/proxy?url=' + encodeURIComponent(u);
+  var endpoint = state.clientType === 'stalker' ? '/api/stalker/proxy' : '/api/xtream/stream';
+  var pu = location.origin + endpoint + '?url=' + encodeURIComponent(u);
   if (state.client && state.client.mac) pu += '&mac=' + encodeURIComponent(state.client.mac);
   if (state.client && state.client.token) pu += '&token=' + encodeURIComponent(state.client.token);
   return pu;
@@ -223,6 +228,13 @@ async function loadM3uContent(mode, listEl, catsEl) {
     var text = await resp.text();
     var its = parseM3u(text);
     state.allItems = its;
+    /* Build categories from groups */
+    var groups = {};
+    its.forEach(function(ch) {
+      if (ch.genre_id) groups[ch.genre_id] = { title: ch.genre_id, id: ch.genre_id };
+    });
+    var cats = Object.keys(groups).map(function(k) { return groups[k]; });
+    renderCats(cats, catsEl);
     renderList(its, listEl);
   } catch(e) {
     listEl.innerHTML = '<div class="emp"><div class="ic">⚠️</div>' + esc(e.message) + '</div>';
@@ -275,10 +287,17 @@ function renderCats(g, el) {
 
 function filterList() {
   var items = state.allItems;
-  if (state.curCat !== 'all') items = items.filter(function(c) { return String(c.genre_id || c.category_id || '') === String(state.curCat); });
-  var mode = state.view;
-  if (mode === 'tv') renderList(items, $('ch-list'));
-  else renderGrid(items, $('ch-list'));
+  if (state.curCat !== 'all') {
+    items = items.filter(function(c) {
+      var id = c.genre_id || c.category_id || '';
+      return String(id) === String(state.curCat);
+    });
+  }
+  var el = $('ch-list');
+  if (!el) return;
+  if (state.view === 'tv') renderList(items, el);
+  else if (state.view === 'series') renderGrid(items, el);
+  else renderGrid(items, el);
 }
 
 function renderList(items, el) {
@@ -291,7 +310,7 @@ function renderList(items, el) {
     var f = loadFavs().indexOf(u) !== -1;
     var logo = ch.logo || '';
     d.innerHTML = (ch.number ? '<span class="n">' + esc(ch.number) + '</span>' : '') +
-      (logo ? '<img src="' + esc(logo) + '" loading="lazy" onerror="this.style.display=\'none\'" crossorigin="anonymous">' : '<span style="width:28px;text-align:center;font-size:14px">📺</span>') +
+      (logo ? '<img src="' + esc(safeUrl(logo)) + '" loading="lazy" onerror="this.style.display=\'none\'" referrerpolicy="no-referrer">' : '<span style="width:28px;text-align:center;font-size:14px">📺</span>') +
       '<span class="nm">' + esc(ch.name || '') + '</span>' +
       '<span class="st' + (f ? ' on' : '') + '">★</span>';
     d.querySelector('.st').addEventListener('click', function(e) {
@@ -310,97 +329,294 @@ function renderGrid(items, el) {
   el.className = 'gr';
   el.innerHTML = '';
   if (!items || !items.length) { el.className = 'ch-list'; el.innerHTML = '<div class="emp"><div class="ic">📭</div>Nothing here</div>'; return; }
+  var isSeries = state.view === 'series';
   items.forEach(function(m) {
     var d = document.createElement('div');
     d.className = 'card';
     var logo = m.logo || '';
-    d.innerHTML = (logo ? '<img src="' + esc(logo) + '" loading="lazy" onerror="this.style.display=\'none\'" crossorigin="anonymous">' : '<div style="aspect-ratio:2/3;background:#1a1a22;display:flex;align-items:center;justify-content:center;font-size:32px">🎬</div>') +
+    d.innerHTML = (logo ? '<img src="' + esc(safeUrl(logo)) + '" loading="lazy" onerror="this.style.display=\'none\'" referrerpolicy="no-referrer">' : '<div style="aspect-ratio:2/3;background:#1a1a22;display:flex;align-items:center;justify-content:center;font-size:32px">📺</div>') +
       '<div class="nm">' + esc(m.name || '') + '</div>';
-    d.addEventListener('click', function() { playItem(m, state.view === 'tv' ? 'tv' : 'vod', items); });
+    d.addEventListener('click', function() {
+      if (isSeries) browseSeries(m, items);
+      else playItem(m, 'vod', items);
+    });
     el.appendChild(d);
   });
 }
 
+/* Series browsing */
+async function browseSeries(seriesItem, allItems) {
+  mnC.innerHTML = '<div class="emp"><div class="ld" style="display:block;position:static;transform:none"><div class="sp"></div></div>Loading...</div>';
+  state.seriesDetail = { series: seriesItem, items: allItems };
+  state.seriesSeason = null;
+
+  try {
+    var info = null;
+    if (state.clientType === 'xtream') {
+      info = await state.client.getSeriesInfo(seriesItem.series_id || seriesItem.id);
+    } else if (state.clientType === 'stalker') {
+      info = await state.client.getVodInfo(seriesItem.id, 'series');
+    }
+
+    if (!info) throw new Error('Could not load series info');
+
+    var seasons = [];
+    if (info.seasons && Array.isArray(info.seasons)) {
+      seasons = info.seasons;
+    } else if (info.episodes) {
+      /* Xtream returns episodes grouped by season */
+      var seasonKeys = Object.keys(info.episodes || {}).sort();
+      seasons = seasonKeys.map(function(s) { return { id: s, name: 'Season ' + s, season_number: s }; });
+    }
+
+    state.seriesDetail.seasons = seasons;
+    state.seriesDetail.info = info;
+    renderSeriesDetail(info, seasons, seriesItem);
+  } catch(e) {
+    /* Fallback: try to play as regular VOD if series info fails */
+    playItem(seriesItem, 'vod', allItems);
+  }
+}
+
+function renderSeriesDetail(info, seasons, seriesItem) {
+  var html = '<div class="series-detail">';
+  html += '<button class="back-btn" id="series-back" style="background:none;border:none;color:#00d4a0;cursor:pointer;font-size:13px;margin-bottom:10px;display:flex;align-items:center;gap:6px;padding:6px 0"><span>←</span> Back to series</button>';
+  html += '<div class="series-header" style="display:flex;gap:16px;margin-bottom:20px">';
+  if (seriesItem.logo) html += '<img src="' + esc(safeUrl(seriesItem.logo)) + '" style="width:120px;height:180px;object-fit:cover;border-radius:8px;flex-shrink:0" onerror="this.style.display=\'none\'">';
+  html += '<div><h2 style="font-size:18px;margin-bottom:6px">' + esc(seriesItem.name || '') + '</h2>';
+  if (info.description || info.plot) html += '<p style="font-size:12px;color:#7878a0;line-height:1.5">' + esc(info.description || info.plot) + '</p>';
+  if (info.year) html += '<span style="font-size:11px;color:#555;margin-top:6px;display:inline-block">' + esc(info.year) + '</span>';
+  if (info.rating || info.rating_imdb) html += '<span style="font-size:11px;color:#f0b400;margin-left:10px">★ ' + esc(info.rating || info.rating_imdb) + '</span>';
+  html += '</div></div>';
+
+  if (seasons && seasons.length) {
+    html += '<div class="seasons" id="seasons">';
+    var epCount = 0;
+    seasons.forEach(function(s) {
+      var eps = [];
+      if (info.episodes && info.episodes[s.id || s.season_number]) {
+        eps = info.episodes[s.id || s.season_number];
+      }
+      var snum = s.season_number || s.id || '';
+      var c = eps.length;
+      epCount += c;
+      html += '<div class="season-block" style="margin-bottom:14px">';
+      html += '<div class="season-h" style="display:flex;align-items:center;gap:8px;padding:8px 10px;cursor:pointer;border-radius:6px;background:#1a1a26;margin-bottom:6px" onclick="toggleSeason(this)">';
+      html += '<span style="font-size:12px;color:#00d4a0">▶</span>';
+      html += '<span style="font-size:13px;font-weight:500">' + esc(s.name || 'Season ' + snum) + '</span>';
+      html += '<span style="font-size:11px;color:#555;margin-left:auto">' + c + ' episodes</span>';
+      html += '</div>';
+      html += '<div class="ep-list" style="display:none;padding-left:8px">';
+      eps.forEach(function(ep) {
+        var title = ep.title || ep.name || 'Episode ' + (ep.episode_num || ep.series || '');
+        var epNum = ep.episode_num || ep.series || '';
+        html += '<div class="ep-item" data-cmd="' + esc(ep.url || ep.cmd || '') + '" data-id="' + (ep.id || '') + '" style="display:flex;align-items:center;gap:10px;padding:6px 10px;border-radius:6px;cursor:pointer;transition:background .1s" onmouseover="this.style.background=\'#1a1a26\'" onmouseout="this.style.background=\'transparent\'" onclick="playSeriesEpisode(this)">';
+        if (ep.info && ep.info.thumbnail || ep.logo) html += '<img src="' + esc(safeUrl(ep.info && ep.info.thumbnail || ep.logo)) + '" style="width:40px;height:30px;object-fit:cover;border-radius:4px;flex-shrink:0" onerror="this.style.display=\'none\'">';
+        html += '<span style="font-size:12px">' + esc(title) + '</span>';
+        html += '<span style="font-size:11px;color:#555;margin-left:auto">▶</span>';
+        html += '</div>';
+      });
+      html += '</div></div>';
+    });
+    html += '</div>';
+  }
+
+  html += '</div>';
+  mnC.innerHTML = html;
+  viewTitle.textContent = seriesItem.name || 'Series';
+  viewSub.textContent = (seasons ? seasons.length : 0) + ' seasons, ' + epCount + ' episodes';
+
+  /* Auto-open first season */
+  var firstSeason = document.querySelector('.ep-list');
+  if (firstSeason) { firstSeason.style.display = 'block'; var arrow = firstSeason.parentElement.querySelector('.season-h span:first-child'); if (arrow) arrow.textContent = '▼'; }
+
+  document.getElementById('series-back').addEventListener('click', function() {
+    state.seriesDetail = null;
+    var items = state.allItems;
+    var el = $('ch-list');
+    if (el) renderGrid(items, el);
+    viewTitle.textContent = state.view === 'series' ? 'Series' : 'Movies';
+    viewSub.textContent = state.cats.length + ' categories';
+  });
+}
+
+function toggleSeason(el) {
+  var list = el.nextElementSibling;
+  var arrow = el.querySelector('span:first-child');
+  if (list.style.display === 'block') {
+    list.style.display = 'none';
+    if (arrow) arrow.textContent = '▶';
+  } else {
+    list.style.display = 'block';
+    if (arrow) arrow.textContent = '▼';
+  }
+}
+
+async function playSeriesEpisode(el) {
+  var cmd = el.dataset.cmd;
+  var id = el.dataset.id;
+  var item = { name: el.querySelector('span:nth-child(2)') ? el.querySelector('span:nth-child(2)').textContent : 'Episode', url: cmd, id: id };
+  await playItem(item, 'vod', [item]);
+}
+
 /* Player */
 async function playItem(item, mode, all) {
-  if (state.mpegtsPlayer) { state.mpegtsPlayer.destroy(); state.mpegtsPlayer = null; }
+  /* Clean up any existing player */
+  if (state.mpegtsPlayer) { try { state.mpegtsPlayer.destroy(); } catch(e) {} state.mpegtsPlayer = null; }
+  if (state.hlsPlayer) { try { state.hlsPlayer.destroy(); } catch(e) {} state.hlsPlayer = null; }
   vid.pause();
   vid.removeAttribute('src');
   vid.load();
   ld.classList.remove('hidden');
   ply.classList.add('show');
   plyInfo.textContent = item.name || '';
-
   state.selCh = item;
+  resetHideTimer();
 
   var cmd = item.url || item.cmd || '';
   var url = cmd;
+  var proxiedUrl = cmd;
 
   try {
     if (state.clientType === 'stalker' && cmd && state.client && state.client.createLink) {
       url = await state.client.createLink(cmd, mode === 'tv' ? 'itv' : 'vod');
     }
-  } catch(e) {}
-
-  var proxiedUrl = pUrl(url);
+  } catch(e) { console.log('[Play] createLink error:', e); }
 
   /* Xtream/M3U: get stream URL */
   if (state.clientType === 'xtream' && item.stream_id) {
-    if (mode === 'tv') proxiedUrl = await state.client.getLiveUrl(item.stream_id, item.extension || 'm3u8');
-    else if (mode === 'vod') proxiedUrl = await state.client.getVodUrl(item.stream_id, item.extension || 'mp4');
+    try {
+      if (mode === 'tv') url = await state.client.getLiveUrl(item.stream_id, item.extension || 'm3u8');
+      else if (mode === 'vod') url = await state.client.getVodUrl(item.stream_id, item.extension || 'mp4');
+    } catch(e) { console.log('[Play] xtream url error:', e); }
   }
 
-  /* Check if mpegts can handle it */
-  var tryTs = isTS(url) || isTS(proxiedUrl);
-  var mpegtsOk = typeof mpegts !== 'undefined' && mpegts.isSupported && mpegts.isSupported();
-  var hlsOk = typeof Hls !== 'undefined' && Hls.isSupported && Hls.isSupported() && (proxiedUrl.indexOf('.m3u8') !== -1 || proxiedUrl.indexOf('m3u8') !== -1);
+  proxiedUrl = pUrl(url);
 
-  if (tryTs && mpegtsOk) {
+  /* Clean up old state.hlsPlayer */
+  state.hlsPlayer = null;
+
+  /* Detect stream format */
+  var isTsUrl = isTS(url) || isTS(proxiedUrl);
+  var isHlsUrl = isM3U8(url) || isM3U8(proxiedUrl);
+  var mpegtsOk = isTsUrl && typeof mpegts !== 'undefined' && mpegts.isSupported && mpegts.isSupported();
+  var hlsOk = isHlsUrl && typeof Hls !== 'undefined' && Hls.isSupported && Hls.isSupported();
+
+  /* Try mpegts.js for TS streams */
+  if (mpegtsOk) {
     try {
       state.mpegtsPlayer = mpegts.createPlayer({ type: 'mpegts', isLive: true, url: proxiedUrl });
       state.mpegtsPlayer.attachMediaElement(vid);
       state.mpegtsPlayer.load();
       state.mpegtsPlayer.play().catch(function() {});
-      state.mpegtsPlayer.on(mpegts.Events.ERROR, function() {});
+      state.mpegtsPlayer.on(mpegts.Events.ERROR, function() {
+        ld.classList.add('hidden');
+        plyInfo.textContent = '⚠️ Stream error';
+      });
       ld.classList.add('hidden');
       return;
-    } catch(e) {}
+    } catch(e) { console.log('[Play] mpegts error:', e); }
   }
 
+  /* Try hls.js for HLS streams */
   if (hlsOk) {
-    var hls = new Hls();
-    hls.loadSource(proxiedUrl);
-    hls.attachMedia(vid);
-    hls.on(Hls.Events.MANIFEST_PARSED, function() { vid.play().catch(function() {}); });
-    ld.classList.add('hidden');
-    return;
+    try {
+      state.hlsPlayer = new Hls({ enableWorker: false });
+      state.hlsPlayer.loadSource(proxiedUrl);
+      state.hlsPlayer.attachMedia(vid);
+      state.hlsPlayer.on(Hls.Events.MANIFEST_PARSED, function() { vid.play().catch(function() {}); ld.classList.add('hidden'); });
+      state.hlsPlayer.on(Hls.Events.ERROR, function(evt, data) {
+        if (data.fatal) { ld.classList.add('hidden'); plyInfo.textContent = '⚠️ HLS error'; }
+      });
+      return;
+    } catch(e) { console.log('[Play] hls error:', e); }
   }
 
-  /* Native playback */
+  /* Native playback as final fallback */
   vid.src = proxiedUrl;
-  vid.play().catch(function() {});
+  vid.load();
+  var playPromise = vid.play();
+  if (playPromise) playPromise.catch(function(e) {
+    console.log('[Play] native error:', e);
+    plyInfo.textContent = '⚠️ Playback failed';
+  });
   setTimeout(function() { ld.classList.add('hidden'); }, 2000);
 }
+
+function closePlayer() {
+  ply.classList.remove('show');
+  clearTimeout(hideTimer);
+  ply.querySelectorAll('.bar, .b-bot').forEach(function(el) { el.style.opacity = '1'; });
+  if (state.mpegtsPlayer) { try { state.mpegtsPlayer.destroy(); } catch(e) {} state.mpegtsPlayer = null; }
+  if (state.hlsPlayer) { try { state.hlsPlayer.destroy(); } catch(e) {} state.hlsPlayer = null; }
+  vid.pause();
+  vid.removeAttribute('src');
+  vid.load();
+}
+
+function fmtTime(t) { if (!t || !isFinite(t)) return '0:00'; var m = Math.floor(t / 60), s = Math.floor(t % 60); return m + ':' + (s < 10 ? '0' : '') + s; }
 
 vid.addEventListener('play', function() { state.isPlaying = true; plyPlay.textContent = '⏸'; ld.classList.add('hidden'); });
 vid.addEventListener('pause', function() { state.isPlaying = false; plyPlay.textContent = '▶'; });
 vid.addEventListener('waiting', function() { ld.classList.remove('hidden'); });
 vid.addEventListener('canplay', function() { ld.classList.add('hidden'); });
+vid.addEventListener('error', function() {
+  ld.classList.add('hidden');
+  plyInfo.textContent = '⚠️ Playback error - try another channel';
+});
 vid.addEventListener('timeupdate', function() {
   if (vid.duration) {
     prFill.style.width = (vid.currentTime / vid.duration * 100) + '%';
-    var m = Math.floor(vid.currentTime / 60), s = Math.floor(vid.currentTime % 60);
-    tm.textContent = m + ':' + (s < 10 ? '0' : '') + s;
+    tm.textContent = fmtTime(vid.currentTime) + ' / ' + fmtTime(vid.duration);
   }
 });
 
-plyPlay.addEventListener('click', function() { if (vid.paused) vid.play(); else vid.pause(); });
-plyFs.addEventListener('click', function() { vid.requestFullscreen ? vid.requestFullscreen() : vid.webkitRequestFullscreen ? vid.webkitRequestFullscreen() : ''; });
+/* Progress bar click to seek */
+$('pr').addEventListener('click', function(e) {
+  var rect = this.getBoundingClientRect();
+  var pct = (e.clientX - rect.left) / rect.width;
+  if (vid.duration) vid.currentTime = pct * vid.duration;
+});
+
+/* Volume control */
+var volMuted = false, volLevel = 1;
+plyVol.addEventListener('click', function() {
+  if (vid.muted) { vid.muted = false; vid.volume = volLevel; plyVol.textContent = vid.volume > 0.5 ? '🔊' : '🔉'; }
+  else { volMuted = true; volLevel = vid.volume; vid.muted = true; plyVol.textContent = '🔇'; }
+});
+vid.addEventListener('volumechange', function() {
+  if (vid.muted || vid.volume === 0) plyVol.textContent = '🔇';
+  else plyVol.textContent = vid.volume > 0.5 ? '🔊' : '🔉';
+});
+
+plyPlay.addEventListener('click', function() { if (vid.paused) vid.play().catch(function() {}); else vid.pause(); });
+plyFs.addEventListener('click', function() {
+  if (document.fullscreenElement) document.exitFullscreen();
+  else { var el = vid.requestFullscreen ? vid : ply; (el.requestFullscreen || el.webkitRequestFullscreen || function() {}).call(el); }
+});
 plyBack.addEventListener('click', closePlayer);
-document.addEventListener('keydown', function(e) { if (e.key === 'Escape' && ply.classList.contains('show')) closePlayer(); });
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape' && ply.classList.contains('show')) closePlayer();
+  if (e.key === ' ' && ply.classList.contains('show')) { e.preventDefault(); if (vid.paused) vid.play().catch(function() {}); else vid.pause(); }
+});
+
+/* Auto-hide player controls */
+var hideTimer = null;
+function resetHideTimer() {
+  ply.querySelectorAll('.bar, .b-bot').forEach(function(el) { el.style.opacity = '1'; });
+  clearTimeout(hideTimer);
+  hideTimer = setTimeout(function() {
+    if (state.isPlaying) ply.querySelectorAll('.bar, .b-bot').forEach(function(el) { el.style.opacity = '0'; });
+  }, 3000);
+}
+ply.addEventListener('mousemove', resetHideTimer);
+ply.addEventListener('click', resetHideTimer);
+resetHideTimer();
 
 function closePlayer() {
   ply.classList.remove('show');
+  clearTimeout(hideTimer);
+  ply.querySelectorAll('.bar, .b-bot').forEach(function(el) { el.style.opacity = '1'; });
   if (state.mpegtsPlayer) { state.mpegtsPlayer.destroy(); state.mpegtsPlayer = null; }
   vid.pause();
   vid.removeAttribute('src');
@@ -445,7 +661,39 @@ function renderFavs() {
   var favs = loadFavs();
   if (!favs.length) { mnC.innerHTML = '<div class="emp"><div class="ic">⭐</div>No favorites yet</div>'; return; }
   viewSub.textContent = favs.length + ' item' + (favs.length !== 1 ? 's' : '');
-  mnC.innerHTML = '<div class="emp">Favorites work in channel list view (click ★)</div>';
+  /* Build fav items from all sources */
+  var all = state.allItems;
+  var favItems = all.filter(function(item) {
+    var url = item.url || item.cmd || '';
+    return favs.indexOf(url) !== -1;
+  });
+  if (favItems.length) {
+    var el = document.createElement('div');
+    el.className = 'ch-list';
+    mnC.innerHTML = '';
+    mnC.appendChild(el);
+    favItems.forEach(function(ch) {
+      var d = document.createElement('div');
+      d.className = 'ch';
+      var u = ch.url || ch.cmd || '';
+      var logo = ch.logo || '';
+      d.innerHTML = (ch.number ? '<span class="n">' + esc(ch.number) + '</span>' : '') +
+        (logo ? '<img src="' + esc(safeUrl(logo)) + '" loading="lazy" onerror="this.style.display=\'none\'" referrerpolicy="no-referrer">' : '<span style="width:28px;text-align:center;font-size:14px">📺</span>') +
+        '<span class="nm">' + esc(ch.name || '') + '</span>' +
+        '<span class="st on">★</span>';
+      d.querySelector('.st').addEventListener('click', function(e) {
+        e.stopPropagation();
+        var a = loadFavs(), i = a.indexOf(u);
+        if (i !== -1) a.splice(i, 1);
+        saveFavs(a);
+        renderFavs();
+      });
+      d.addEventListener('click', function() { playItem(ch, state.view === 'tv' ? 'tv' : 'vod', favItems); });
+      el.appendChild(d);
+    });
+  } else {
+    mnC.innerHTML = '<div class="emp"><div class="ic">⭐</div>Browse channels and click ★ to add favorites</div>';
+  }
 }
 
 /* modal - add source */

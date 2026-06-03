@@ -2,5 +2,7 @@
   "name": "sidiptv",
   "version": "1.0.0",
   "private": true,
-  "dependencies": {}
+  "dependencies": {
+    "fast-xml-parser": "^5.8.0"
+  }
 }

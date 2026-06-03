@@ -60,20 +60,20 @@ module.exports = async (req, res) => {
 
     let payload = result.data;
     if (typeof payload === "string") {
-      const trimmed = payload.trim();
-      if (trimmed.startsWith("<?xml")) {
-        const parsed = parseXmlStalker(trimmed);
+      let text = payload.trim();
+      if (text.startsWith("<?xml")) {
+        const parsed = parseXmlStalker(text);
         if (parsed && Object.keys(parsed).length) {
-          payload = parsed.response || parsed;
+          text = parsed.response || parsed;
         }
-      } else if (trimmed.startsWith("//")) {
-        const nl = trimmed.indexOf("\n");
-        if (nl > 0) {
-          try {
-            const json = JSON.parse(trimmed.slice(nl + 1));
-            payload = json.response || json;
-          } catch (_) {}
-        }
+      } else if (text.startsWith("//")) {
+        const nl = text.indexOf("\n");
+        if (nl > 0) text = text.slice(nl + 1);
+      }
+      if (typeof text === "string" && (text.startsWith("{") || text.startsWith("["))) {
+        try { payload = JSON.parse(text); } catch (_) { payload = text; }
+      } else {
+        payload = text;
       }
     }
 

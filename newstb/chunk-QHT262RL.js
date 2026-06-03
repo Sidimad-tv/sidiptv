@@ -133931,12 +133931,14 @@ var VjsPlayerComponent = class _VjsPlayerComponent {
    * @param changes contains changed channel object
    */
   ngOnChanges(changes) {
-    if (changes.options.previousValue) {
-      const src = changes.options.currentValue.sources[0];
-      if (src?.src && !src.src.startsWith("/api/stream")) {
-        src.src = "/api/stream?url=" + encodeURIComponent(src.src);
+    if (changes.options && changes.options.currentValue?.sources?.[0]?.src) {
+      if (this.player) {
+        const src = changes.options.currentValue.sources[0];
+        if (!src.src.startsWith("/api/stream")) {
+          src.src = "/api/stream?url=" + encodeURIComponent(src.src);
+        }
+        this.player.src(src);
       }
-      this.player.src(src);
     }
     if (changes.volume?.currentValue !== void 0 && this.player) {
       console.log("Setting VideoJS player volume to:", changes.volume.currentValue);

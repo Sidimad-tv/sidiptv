@@ -67694,7 +67694,7 @@ var ArtPlayerComponent = class _ArtPlayerComponent {
     const ref = this.channel.http?.referrer ? "&referer=" + encodeURIComponent(this.channel.http.referrer) : "";
     this.player = new e({
       container: el,
-      url: origUrl,
+      url: "/api/stream?url=" + encodeURIComponent(origUrl) + ref,
       volume: this.volume,
       isLive,
       autoplay: true,
@@ -67912,7 +67912,7 @@ var HtmlVideoPlayerComponent = class _HtmlVideoPlayerComponent {
       const origUrl = channel.url + (channel.epgParams ?? "");
       const extension = getExtensionFromUrl(channel.url);
       const ref = channel.http?.referrer ? "&referer=" + encodeURIComponent(channel.http.referrer) : "";
-      const url = origUrl;
+      const url = "/api/stream?url=" + encodeURIComponent(origUrl) + ref;
       this.dataService.sendIpcEvent(CHANNEL_SET_USER_AGENT, {
         userAgent: channel.http?.["user-agent"] ?? "",
         referer: channel.http?.referrer ?? "",
@@ -133917,7 +133917,15 @@ var VjsPlayerComponent = class _VjsPlayerComponent {
     });
     try { this.player["aspectRatioPanel"](); } catch (_) {}
   }
-  proxyOptions() {}
+  proxyOptions() {
+    if (this.options?.sources?.[0]?.src && !this.options.sources[0].src.startsWith("/api/stream")) {
+      this.options = __spreadProps(__spreadValues({}, this.options), {
+        sources: [__spreadProps(__spreadValues({}, this.options.sources[0]), {
+          src: "/api/stream?url=" + encodeURIComponent(this.options.sources[0].src)
+        })]
+      });
+    }
+  }
   /**
    * Replaces the url source of the player with the changed source url
    * @param changes contains changed channel object
@@ -133926,6 +133934,9 @@ var VjsPlayerComponent = class _VjsPlayerComponent {
     if (changes.options && changes.options.currentValue?.sources?.[0]?.src) {
       if (this.player) {
         const src = changes.options.currentValue.sources[0];
+        if (!src.src.startsWith("/api/stream")) {
+          src.src = "/api/stream?url=" + encodeURIComponent(src.src);
+        }
         this.player.src(src);
       }
     }
@@ -134062,7 +134073,7 @@ var WebPlayerViewComponent = class _WebPlayerViewComponent {
     const extension = getExtensionFromUrl(streamUrl);
     const mimeType = extension === "m3u" || extension === "m3u8" || extension === "ts" ? "application/x-mpegURL" : "video/mp4";
     this.vjsOptions = {
-      sources: [{ src: streamUrl, type: mimeType }]
+      sources: [{ src: "/api/stream?url=" + encodeURIComponent(streamUrl), type: mimeType }]
     };
   }
   setChannel(streamUrl) {

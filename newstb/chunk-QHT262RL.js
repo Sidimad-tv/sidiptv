@@ -67690,9 +67690,11 @@ var ArtPlayerComponent = class _ArtPlayerComponent {
   initPlayer() {
     const el = this.elementRef.nativeElement.querySelector(".artplayer-container");
     const isLive = this.channel?.url?.toLowerCase().includes("m3u8");
+    const origUrl = this.channel.url + (this.channel.epgParams || "");
+    const ref = this.channel.http?.referrer ? "&referer=" + encodeURIComponent(this.channel.http.referrer) : "";
     this.player = new e({
       container: el,
-      url: this.channel.url + (this.channel.epgParams || ""),
+      url: "/api/stream?url=" + encodeURIComponent(origUrl) + ref,
       volume: this.volume,
       isLive,
       autoplay: true,
@@ -67907,8 +67909,10 @@ var HtmlVideoPlayerComponent = class _HtmlVideoPlayerComponent {
     if (this.hls)
       this.hls.destroy();
     if (channel.url) {
-      const url = channel.url + (channel.epgParams ?? "");
+      const origUrl = channel.url + (channel.epgParams ?? "");
       const extension = getExtensionFromUrl(channel.url);
+      const ref = channel.http?.referrer ? "&referer=" + encodeURIComponent(channel.http.referrer) : "";
+      const url = "/api/stream?url=" + encodeURIComponent(origUrl) + ref;
       this.dataService.sendIpcEvent(CHANNEL_SET_USER_AGENT, {
         userAgent: channel.http?.["user-agent"] ?? "",
         referer: channel.http?.referrer ?? "",
@@ -133897,6 +133901,7 @@ var VjsPlayerComponent = class _VjsPlayerComponent {
    * Instantiate Video.js on component init
    */
   ngOnInit() {
+    this.proxyOptions();
     this.player = video_es_default2(this.target.nativeElement, __spreadProps(__spreadValues({}, this.options), {
       autoplay: true
     }), () => {
@@ -133912,13 +133917,26 @@ var VjsPlayerComponent = class _VjsPlayerComponent {
     });
     this.player["aspectRatioPanel"]();
   }
+  proxyOptions() {
+    if (this.options?.sources?.[0]?.src && !this.options.sources[0].src.startsWith("/api/stream")) {
+      this.options = __spreadProps(__spreadValues({}, this.options), {
+        sources: [__spreadProps(__spreadValues({}, this.options.sources[0]), {
+          src: "/api/stream?url=" + encodeURIComponent(this.options.sources[0].src)
+        })]
+      });
+    }
+  }
   /**
    * Replaces the url source of the player with the changed source url
    * @param changes contains changed channel object
    */
   ngOnChanges(changes) {
     if (changes.options.previousValue) {
-      this.player.src(changes.options.currentValue.sources[0]);
+      const src = changes.options.currentValue.sources[0];
+      if (src?.src && !src.src.startsWith("/api/stream")) {
+        src.src = "/api/stream?url=" + encodeURIComponent(src.src);
+      }
+      this.player.src(src);
     }
     if (changes.volume?.currentValue !== void 0 && this.player) {
       console.log("Setting VideoJS player volume to:", changes.volume.currentValue);
@@ -134053,7 +134071,7 @@ var WebPlayerViewComponent = class _WebPlayerViewComponent {
     const extension = getExtensionFromUrl(streamUrl);
     const mimeType = extension === "m3u" || extension === "m3u8" || extension === "ts" ? "application/x-mpegURL" : "video/mp4";
     this.vjsOptions = {
-      sources: [{ src: streamUrl, type: mimeType }]
+      sources: [{ src: "/api/stream?url=" + encodeURIComponent(streamUrl), type: mimeType }]
     };
   }
   setChannel(streamUrl) {

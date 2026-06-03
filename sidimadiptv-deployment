@@ -1,0 +1,49 @@
+- generic [ref=e1]:
+  - generic [ref=e4]:
+    - generic [ref=e6]:
+      - img [ref=e158]
+      - generic [ref=e8]:
+        - generic [ref=e9]: IPTVnator
+        - generic [ref=e10]: Please select a playlist from the list or add a new playlist
+      - generic [ref=e11]:
+        - button [ref=e12] [cursor=pointer]:
+          - img [ref=e13]: add
+        - button [ref=e16] [cursor=pointer]:
+          - img [ref=e17]: sort
+        - button [ref=e20] [cursor=pointer]:
+          - img [ref=e21]: filter_alt
+        - button [ref=e159] [cursor=pointer]:
+          - img [ref=e25]: menu
+    - generic [ref=e28]:
+      - generic [ref=e31]:
+        - img [ref=e33]: search
+        - searchbox [ref=e160]
+      - navigation [ref=e161]:
+        - generic [ref=e162] [cursor=pointer]:
+          - img [ref=e163]: search
+          - generic [ref=e164]:
+            - generic [ref=e165]: No playlists were added
+            - generic [ref=e166]: Please add your first playlist
+  - 'dialog "Add playlist: stalker" [ref=e170]':
+    - generic [ref=e173]:
+      - 'heading "Add playlist: stalker" [level=2] [ref=e174]'
+      - generic [ref=e177]:
+        - generic [ref=e181]:
+          - generic [ref=e182]:
+            - text: Title
+            - generic [ref=e183]: "*"
+          - textbox "Title" [active] [ref=e184]
+        - generic [ref=e186]:
+          - generic [ref=e189]:
+            - generic [ref=e190]:
+              - text: Server URL
+              - generic [ref=e191]: "*"
+            - textbox "Server URL" [ref=e192]
+          - generic [ref=e195]: Should be a valid url with protocol (e.g. http://example.com/c or https://example.com/stalker_portal/c)
+        - generic [ref=e200]:
+          - generic [ref=e201]:
+            - text: Mac Address
+            - generic [ref=e202]: "*"
+          - textbox "Mac Address" [ref=e203]
+        - button "Add" [disabled]:
+          - generic: Add

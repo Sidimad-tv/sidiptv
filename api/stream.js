@@ -1,15 +1,24 @@
 const http = require("http");
 const https = require("https");
 
-function fetchUrl(currentUrl, rangeHeader) {
+const MAG_UA = "Mozilla/5.0 (QtEmbedded; U; Linux; C) AppleWebKit/533.3 (KHTML, like Gecko) MAG200 stbapp ver: 2 rev: 250 Safari/533.3";
+
+function fetchUrl(currentUrl, rangeHeader, mac, portal, token) {
   return new Promise((resolve, reject) => {
     const u = new URL(currentUrl);
     const mod = u.protocol === "https:" ? https : http;
     const headers = {
-      "User-Agent": "Mozilla/5.0 (QtEmbedded; U; Linux; C) AppleWebKit/533.3 (KHTML, like Gecko) MAG200 stbapp ver: 2 rev: 250 Safari/533.3",
+      "User-Agent": MAG_UA,
+      "X-User-Agent": "Model: MAG200; Link: Ethernet",
       "Accept": "*/*",
     };
     if (rangeHeader) headers["Range"] = rangeHeader;
+    if (u.hostname !== "localhost" && u.hostname !== "127.0.0.1") {
+      headers["Referer"] = portal || u.origin + "/c/";
+      headers["Origin"] = portal ? portal.replace(/\/+$/, "") : u.origin;
+    }
+    if (mac) headers["Cookie"] = "mac=" + mac + "; stb_lang=en; timezone=Europe/London";
+    if (token) headers["Authorization"] = "Bearer " + token;
 
     const opts = {
       hostname: u.hostname,
@@ -38,11 +47,11 @@ function fetchUrl(currentUrl, rangeHeader) {
   });
 }
 
-async function doFetchWithRedirects(targetUrl, redirectCount) {
+async function doFetchWithRedirects(targetUrl, redirectCount, mac, portal, token) {
   if (redirectCount > 5) throw new Error("Too many redirects");
-  const res = await fetchUrl(targetUrl);
+  const res = await fetchUrl(targetUrl, "", mac, portal, token);
   if ([301, 302, 303, 307, 308].includes(res.status) && res.headers.location) {
-    return doFetchWithRedirects(new URL(res.headers.location, targetUrl).toString(), redirectCount + 1);
+    return doFetchWithRedirects(new URL(res.headers.location, targetUrl).toString(), redirectCount + 1, mac, portal, token);
   }
   return res;
 }
@@ -82,7 +91,7 @@ exports.handler = async (event) => {
 
   try {
     const rangeHeader = event.headers?.range || event.headers?.Range || event.multiValueHeaders?.range?.[0] || "";
-    const result = await doFetchWithRedirects(targetUrl, 0);
+    const result = await doFetchWithRedirects(targetUrl, 0, mac, portal);
     const isM3u8 = (result.contentType && (result.contentType.includes("mpegurl") || result.contentType.includes("m3u"))) ||
       targetUrl.endsWith(".m3u8") || targetUrl.includes(".m3u8?");
 

@@ -50,8 +50,10 @@ function pUrl(u) {
   if (!u || (u.indexOf('http:') !== 0 && u.indexOf('https:') !== 0)) return u;
   if (location.protocol !== 'https:' || u.indexOf('https:') === 0) return u;
   var pu = location.origin + '/api/stream?url=' + encodeURIComponent(u);
-  if (state.client && state.client.mac) pu += '&macAddress=' + encodeURIComponent(state.client.mac);
-  if (state.client && state.client.token) pu += '&token=' + encodeURIComponent(state.client.token);
+  if (state.client) {
+    if (state.client.mac) pu += '&macAddress=' + encodeURIComponent(state.client.mac);
+    if (state.client.portalUrl) pu += '&portal=' + encodeURIComponent(state.client.portalUrl);
+  }
   return pu;
 }
 

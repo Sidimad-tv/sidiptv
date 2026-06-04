@@ -70,10 +70,9 @@ module.exports = async (req, res) => {
   if (!url) return res.status(400).json({ message: "Missing url" });
 
   const action = params.action || "";
-  const needsProfile = !token && ["get_genres", "get_categories", "get_ordered_list", "get_channels"].includes(action);
-  let effectiveToken = token;
+  let effectiveToken = token || "";
 
-  if (needsProfile && macAddress) {
+  if (["get_genres", "get_categories", "get_ordered_list", "get_channels", "create_link"].includes(action) && macAddress) {
     const pt = await ensureProfile(url, macAddress);
     if (pt) effectiveToken = pt;
   }

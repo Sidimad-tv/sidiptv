@@ -49,9 +49,8 @@ function isM3U8(u) { return /\.m3u8|m3u8/i.test(u); }
 function pUrl(u) {
   if (!u || (u.indexOf('http:') !== 0 && u.indexOf('https:') !== 0)) return u;
   if (location.protocol !== 'https:' || u.indexOf('https:') === 0) return u;
-  var endpoint = state.clientType === 'stalker' ? '/api/stalker' : '/api/xtream/stream';
-  var pu = location.origin + endpoint + '?url=' + encodeURIComponent(u);
-  if (state.client && state.client.mac) pu += '&mac=' + encodeURIComponent(state.client.mac);
+  var pu = location.origin + '/api/stream?url=' + encodeURIComponent(u);
+  if (state.client && state.client.mac) pu += '&macAddress=' + encodeURIComponent(state.client.mac);
   if (state.client && state.client.token) pu += '&token=' + encodeURIComponent(state.client.token);
   return pu;
 }

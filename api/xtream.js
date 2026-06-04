@@ -69,3 +69,14 @@ exports.handler = async (event) => {
     };
   }
 };
+/* Vercel adapter */
+const _xtreamHandler = exports.handler;
+module.exports = async (req, res) => {
+  try {
+    const r = await _xtreamHandler({ httpMethod: req.method, queryStringParameters: req.query, headers: req.headers, body: req.body });
+    res.status(r.statusCode || 200);
+    for (const [k, v] of Object.entries(r.headers || {})) res.setHeader(k, v);
+    res.send(r.isBase64Encoded ? Buffer.from(r.body, 'base64') : r.body);
+  } catch(e) { res.status(500).send(e.message); }
+};
+module.exports.handler = _xtreamHandler;

@@ -1,5 +1,10 @@
 {
   "rewrites": [
-    { "source": "/newstb/(.*)", "destination": "/newstb/index.html" }
+    { "source": "/api/(.*)", "destination": "/api/$1" },
+    { "source": "/newstb/(.*)", "destination": "/newstb/index.html" },
+    { "source": "/tv(/.*)?", "destination": "/player.html" },
+    { "source": "/movies(/.*)?", "destination": "/player.html" },
+    { "source": "/series(/.*)?", "destination": "/player.html" },
+    { "source": "/player(/.*)?", "destination": "/player.html" }
   ]
 }

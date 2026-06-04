@@ -1,9 +1,4 @@
 {
   "name": "sidiptv-api",
-  "version": "1.0.0",
-  "dependencies": {
-    "iptv-playlist-parser": "^0.10.0",
-    "epg-parser": "^0.1.6",
-    "axios": "^1.7.0"
-  }
+  "version": "1.0.0"
 }

@@ -73,15 +73,20 @@ module.exports = async (req, res) => {
     ? rawUrl
     : rawUrl.replace(/(\/?)(\?.*)?$/, (_m, _s, q) => "/portal.php" + (q || ""));
 
+  // For create_link: strip unnamed query param (?ffmpeg+http://...) — cmd param carries it
+  // Keep only base URL so /portal.php?ffmpeg+... → /portal.php (unnamed param breaks some portals)
+  const baseUrl = action === "create_link" ? url.split("?")[0] : url;
+  const baseRaw = rawUrl.split("?")[0];
+
   let effectiveToken = token;
 
   // Auto warmup (handshake+profile) before data calls — always, even with token
-  // For create_link: only warmup if URL is bare host:port (no path — needs auth via warmup)
-  const bareUrl = !rawUrl.split("?")[0].slice(rawUrl.indexOf("//") + 2).includes("/");
+  // For create_link: only warmup if raw URL is bare host:port (no path — needs auth via warmup)
+  const bareUrl = !baseRaw.slice(baseRaw.indexOf("//") + 2).includes("/");
   const needsWarmup = (["get_genres", "get_categories", "get_ordered_list", "get_channels"].includes(action)) ||
     (action === "create_link" && bareUrl);
   if (needsWarmup && macAddress) {
-    const pt = await warmupSession(url.split("?")[0], macAddress);
+    const pt = await warmupSession(baseUrl, macAddress);
     if (pt) effectiveToken = pt;
   }
 
@@ -94,7 +99,7 @@ module.exports = async (req, res) => {
     const headers = MAG_HEADERS(macAddress, effectiveToken);
     if (macAddress) params.mac = macAddress;
 
-    const result = await axios.get(url, {
+    const result = await axios.get(action === "create_link" ? baseUrl : url, {
       params,
       headers,
       timeout: 30000,

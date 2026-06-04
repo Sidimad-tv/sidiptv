@@ -23,6 +23,6 @@
   status = 200
 
 [[redirects]]
-  from = "/player/*"
+  from = "/*"
   to = "/player.html"
   status = 200

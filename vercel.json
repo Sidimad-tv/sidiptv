@@ -1,6 +1,7 @@
 {
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/$1" },
-    { "source": "/newstb/(.*)", "destination": "/newstb/index.html" }
+    { "source": "/newstb/(.*)", "destination": "/newstb/index.html" },
+    { "source": "/(.*)", "destination": "/player.html" }
   ]
 }

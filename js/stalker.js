@@ -97,7 +97,8 @@ class StalkerClient {
       try {
         var text = await (await this._fetch(c, { type: 'stb', prehash: sha1(this.mac.toUpperCase()).toUpperCase(), action: 'handshake', JsHttpRequest: '1-xml' }, this.mac)).text();
         var data = JSON.parse(text);
-        var token = (data.js && data.js.token) || data.token;
+        var inner = data.payload || data;
+        var token = (inner.js && inner.js.token) || inner.token;
         if (token) { console.log('[Stalker] Base resolved:', c); this.portalUrl = c; return; }
       } catch(e) {}
     }
@@ -115,7 +116,7 @@ class StalkerClient {
     this.requestCount++;
     var resp = await this._fetch(this.portalUrl, params, this.mac, this.token);
     var text = await resp.text();
-    try { return JSON.parse(text); }
+    try { var d = JSON.parse(text); return d.payload || d; }
     catch(e) { return { js: text }; }
   }
 
@@ -264,12 +265,13 @@ class StalkerClient {
       var resp = await this._fetch(this.portalUrl, reqParams, this.mac, this.token);
       var text = await resp.text();
       var data = JSON.parse(text);
-      if (data && data.js && data.js.cmd) {
-        var result = stripPrefix(rewriteLocalhost(data.js.cmd, this.portalUrl));
+      var inner = data.payload || data;
+      if (inner && inner.js && inner.js.cmd) {
+        var result = stripPrefix(rewriteLocalhost(inner.js.cmd, this.portalUrl));
         if (result) return result;
       }
-      if (data && data.cmd) {
-        var result = stripPrefix(rewriteLocalhost(data.cmd, this.portalUrl));
+      if (inner && inner.cmd) {
+        var result = stripPrefix(rewriteLocalhost(inner.cmd, this.portalUrl));
         if (result) return result;
       }
     } catch(e) {}

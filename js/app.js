@@ -270,7 +270,17 @@ function parseM3u(text) {
 
 function renderCats(g, el) {
   state.cats = g || [];
-  el.innerHTML = '<button class="act">All</button>';
+  el.innerHTML = '';
+  var allBtn = document.createElement('button');
+  allBtn.className = 'act';
+  allBtn.textContent = 'All';
+  allBtn.addEventListener('click', function() {
+    el.querySelectorAll('button').forEach(function(x) { x.classList.remove('act'); });
+    allBtn.classList.add('act');
+    state.curCat = 'all';
+    filterList();
+  });
+  el.appendChild(allBtn);
   (g || []).forEach(function(cat) {
     var b = document.createElement('button');
     b.textContent = cat.title || cat.name || cat.category_name || 'Unnamed';
@@ -320,7 +330,7 @@ function renderList(items, el) {
       saveFavs(a);
       this.classList.toggle('on');
     });
-    d.addEventListener('click', function() { playItem(ch, mode, items); });
+    d.addEventListener('click', function() { playItem(ch, 'tv', items); });
     el.appendChild(d);
   });
 }

@@ -442,14 +442,9 @@ function renderSeriesDetail(info, seasons, seriesItem) {
 
 function toggleSeason(el) {
   var list = el.nextElementSibling;
-  var arrow = el.querySelector('span:first-child');
-  if (list.style.display === 'block') {
-    list.style.display = 'none';
-    if (arrow) arrow.textContent = '▶';
-  } else {
-    list.style.display = 'block';
-    if (arrow) arrow.textContent = '▼';
-  }
+  var arrow = el.querySelector('.arrow');
+  list.classList.toggle('open');
+  arrow.textContent = list.classList.contains('open') ? '▼' : '▶';
 }
 
 async function playSeriesEpisode(el) {
@@ -546,7 +541,7 @@ async function playItem(item, mode, all) {
 function closePlayer() {
   ply.classList.remove('show');
   clearTimeout(hideTimer);
-  ply.querySelectorAll('.bar, .b-bot').forEach(function(el) { el.style.opacity = '1'; });
+  ply.querySelectorAll('.top-bar, .bottom-bar').forEach(function(el) { el.style.opacity = '1'; });
   if (state.mpegtsPlayer) { try { state.mpegtsPlayer.destroy(); } catch(e) {} state.mpegtsPlayer = null; }
   if (state.hlsPlayer) { try { state.hlsPlayer.destroy(); } catch(e) {} state.hlsPlayer = null; }
   vid.pause();
@@ -603,7 +598,7 @@ document.addEventListener('keydown', function(e) {
 /* Auto-hide player controls */
 var hideTimer = null;
 function resetHideTimer() {
-  ply.querySelectorAll('.bar, .b-bot').forEach(function(el) { el.style.opacity = '1'; });
+  ply.querySelectorAll('.top-bar, .bottom-bar').forEach(function(el) { el.style.opacity = '1'; });
   clearTimeout(hideTimer);
   hideTimer = setTimeout(function() {
     if (state.isPlaying) ply.querySelectorAll('.bar, .b-bot').forEach(function(el) { el.style.opacity = '0'; });
@@ -616,7 +611,7 @@ resetHideTimer();
 function closePlayer() {
   ply.classList.remove('show');
   clearTimeout(hideTimer);
-  ply.querySelectorAll('.bar, .b-bot').forEach(function(el) { el.style.opacity = '1'; });
+  ply.querySelectorAll('.top-bar, .bottom-bar').forEach(function(el) { el.style.opacity = '1'; });
   if (state.mpegtsPlayer) { state.mpegtsPlayer.destroy(); state.mpegtsPlayer = null; }
   vid.pause();
   vid.removeAttribute('src');
@@ -640,17 +635,21 @@ function renderDash() {
   viewTitle.textContent = 'Dashboard';
   var ss = loadSources();
   var favs = loadFavs();
-  var html = '<div class="wel"><div class="ic">📺</div><h2>Welcome to sidiptv</h2><p>Add your IPTV source to get started. Supports Stalker Portal, Xtream Codes, and M3U playlists.</p></div>';
-  if (ss.length) {
-    html = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px">';
-    ss.forEach(function(s, i) {
-      html += '<div style="background:#1a1a22;border-radius:10px;padding:16px;cursor:pointer" onclick="state.view=\'tv\';activateSource(' + i + ')">' +
-        '<div style="font-size:24px;margin-bottom:8px">' + (s.type === 'stalker' ? '📡' : s.type === 'xtream' ? '🔑' : '📋') + '</div>' +
-        '<div style="font-weight:600">' + esc(s.name || s.type) + '</div>' +
-        '<div style="font-size:11px;color:#7878a0;margin-top:4px">' + esc(s.type === 'stalker' ? s.portal : s.type === 'xtream' ? s.server : s.url) + '</div></div>';
-    });
-    html += '</div>';
+  if (!ss.length) {
+    mnC.innerHTML = '<div class="wel"><div class="ic">📺</div><h2>Welcome to sidiptv</h2><p>Add your IPTV source to get started. Supports Stalker Portal, Xtream Codes, and M3U playlists.</p></div>';
+    viewSub.textContent = '0 sources';
+    return;
   }
+  var html = '<div class="stats"><div class="stat"><div class="val">' + ss.length + '</div><div class="lbl">Sources</div></div><div class="stat"><div class="val">' + favs.length + '</div><div class="lbl">Favorites</div></div></div>';
+  html += '<div class="src-grid">';
+  ss.forEach(function(s, i) {
+    html += '<div class="src-card' + (state.activeSource === i ? ' connected' : '') + '" onclick="state.view=\'tv\';activateSource(' + i + ')">' +
+      '<div class="ico">' + (s.type === 'stalker' ? '📡' : s.type === 'xtream' ? '🔑' : '📋') + '</div>' +
+      '<div class="title">' + esc(s.name || s.type) + '</div>' +
+      '<div class="sub">' + esc(s.type === 'stalker' ? s.portal : s.type === 'xtream' ? s.server : s.url) + '</div>' +
+      (state.activeSource === i ? '<div class="status">● Connected</div>' : '') + '</div>';
+  });
+  html += '</div>';
   mnC.innerHTML = html;
   viewSub.textContent = ss.length + ' source' + (ss.length !== 1 ? 's' : '');
 }

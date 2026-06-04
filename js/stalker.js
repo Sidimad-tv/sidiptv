@@ -66,9 +66,13 @@ class StalkerClient {
         }
       }
     }
-    var resp = await fetch(origin + '/api/stalker?' + q);
-    if (!resp.ok) throw new Error('HTTP ' + resp.status);
-    return resp;
+    var controller = new AbortController();
+    var t = setTimeout(function() { controller.abort(); }, 12000);
+    try {
+      var resp = await fetch(origin + '/api/stalker?' + q, { signal: controller.signal });
+      if (!resp.ok) throw new Error('HTTP ' + resp.status);
+      return resp;
+    } finally { clearTimeout(t); }
   }
 
   async _resolveBase() {

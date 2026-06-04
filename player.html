@@ -195,11 +195,10 @@
     #mod-form .pr:disabled{opacity:0.4;cursor:not-allowed;transform:none!important}
     #mod-st{font-size:12px;margin-top:14px;text-align:center;min-height:20px;font-weight:500;transition:all var(--transition)}
 
-    /* Presets */
-    .presets-label{display:block;font-size:11px;color:var(--text3);margin-top:16px;font-weight:500;letter-spacing:0.5px;text-transform:uppercase}
-    .presets-wrap{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
-    .preset-btn{padding:5px 12px;border-radius:14px;border:1px solid var(--border);background:var(--bg3);color:var(--text2);font-size:11px;cursor:pointer;transition:all var(--transition);font-weight:500}
-    .preset-btn:hover{border-color:var(--accent);color:var(--accent);background:var(--accent2)}
+    /* Preset dropdown */
+    #preset-select{width:100%;padding:12px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text2);font-size:13px;outline:none;transition:all var(--transition);cursor:pointer;margin-top:16px;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%237878a0' d='M2 4l4 4 4-4'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px}
+    #preset-select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(var(--accent-rgb),0.1)}
+    #preset-select option{background:var(--bg2);color:var(--text)}
 
     /* Settings Modal */
     #settings-mod{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);z-index:250;display:none;align-items:center;justify-content:center;backdrop-filter:blur(8px)}
@@ -388,6 +387,8 @@
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/mpegts.js@1.7.3/dist/mpegts.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/hls.js@latest/dist/hls.min.js"></script>
 <script src="js/xtream.js"></script>
 <script src="js/stalker.js"></script>
 <script src="js/app.js"></script>
@@ -426,9 +427,10 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
   ply.addEventListener('mousemove', function(){ showCtrl(); hideCtrl(); });
 })();
 
-/* ========== PRESET PORTALS ========== */
+/* ========== PRESET PORTALS DROPDOWN ========== */
 (function(){
   var presets = [
+    { name: '-- Select Preset --', portal: '', mac: '' },
     { name: 'Ghaouti', portal: 'http://ghaouti1.com:80', mac: '00:1A:79:B5:35:53' },
     { name: 'Alpha-2', portal: 'http://alpha-2ott.me:80/c', mac: '00:1A:79:5E:41:5A' },
     { name: '185.98...', portal: 'http://185.98.209.11:88/stalker_portal/c', mac: '00:1A:79:D3:72:82' },
@@ -437,51 +439,43 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
     { name: 'Senpay', portal: 'http://mag.senpay25.com/c', mac: '00:1A:79:0a:0a:32' },
     { name: 'Cineplus', portal: 'http://cineplus-hd.com:80/c', mac: '00:1A:79:AF:17:E8' },
   ];
-  var pendingPresets = false;
-  function addPresetButtons() {
+  function addPresetDropdown() {
     var form = document.getElementById('mod-form');
-    if (!form || form.querySelector('.presets-label')) return;
-    var label = document.createElement('div');
-    label.className = 'presets-label';
-    label.textContent = 'Quick Presets';
-    form.appendChild(label);
-    var wrap = document.createElement('div');
-    wrap.className = 'presets-wrap';
-    presets.forEach(function(p){
-      var btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'preset-btn';
-      btn.textContent = p.name;
-      btn.addEventListener('click', function(){
-        var pInput = document.getElementById('m-portal');
-        var mInput = document.getElementById('m-mac');
-        var nInput = document.getElementById('m-name');
-        if (pInput) pInput.value = p.portal;
-        if (mInput) mInput.value = p.mac;
-        if (nInput) nInput.value = p.name;
-      });
-      wrap.appendChild(btn);
+    if (!form || document.getElementById('preset-select')) return;
+    var sel = document.createElement('select');
+    sel.id = 'preset-select';
+    presets.forEach(function(p, i){
+      var opt = document.createElement('option');
+      opt.value = i;
+      opt.textContent = p.name;
+      sel.appendChild(opt);
     });
-    form.appendChild(wrap);
+    sel.addEventListener('change', function(){
+      var p = presets[this.value];
+      if (!p || !p.portal) return;
+      var nInput = document.getElementById('m-name');
+      var pInput = document.getElementById('m-portal');
+      var mInput = document.getElementById('m-mac');
+      if (nInput) nInput.value = p.name;
+      if (pInput) pInput.value = p.portal;
+      if (mInput) mInput.value = p.mac;
+    });
+    form.appendChild(sel);
   }
-  /* Observe mod-form changes to add presets after Stalker form is populated */
   var modForm = document.getElementById('mod-form');
   if (modForm) {
     var obs = new MutationObserver(function(){
-      if (document.querySelector('#mod-tabs .act[data-type="stalker"]')) {
-        addPresetButtons();
+      if (document.querySelector('#mod-tabs .act[data-type="stalker"]') && !document.getElementById('preset-select')) {
+        addPresetDropdown();
       }
     });
     obs.observe(modForm, { childList: true, subtree: true });
   }
-  /* Also add on tab switch */
   var modTabs = document.getElementById('mod-tabs');
   if (modTabs) {
     modTabs.addEventListener('click', function(e){
       var btn = e.target.closest('button');
-      if (btn && btn.dataset.type === 'stalker') {
-        setTimeout(addPresetButtons, 50);
-      }
+      if (btn && btn.dataset.type === 'stalker') { setTimeout(addPresetDropdown, 50); }
     });
   }
 })();
@@ -679,6 +673,42 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
   /* Apply saved settings on load */
   var settings = loadSettings();
   applySettings(settings);
+})();
+
+/* ========== MPEGTS AUTO-ATTACH (from index.html) ========== */
+(function(){
+  var attached = new WeakSet();
+  function isTsUrl(url) {
+    var d = typeof url === 'string' ? decodeURIComponent(url) : (url || '');
+    return d && (d.includes('extension=ts') || d.includes('.ts?') || d.endsWith('.ts') || /\.ts\b/i.test(d));
+  }
+  function tryAttachMpegts(video) {
+    if (attached.has(video) || typeof mpegts === 'undefined') return false;
+    var src = video.currentSrc || video.src || '';
+    if (!isTsUrl(src)) return false;
+    attached.add(video);
+    try {
+      var player = mpegts.createPlayer({ type: 'mpegts', isLive: true, url: src });
+      player.attachMediaElement(video);
+      player.load();
+      player.play();
+      video._mpegtsPlayer = player;
+      return true;
+    } catch(e) { console.warn('mpegts auto:', e); return false; }
+  }
+  function initObserver() {
+    if (!document.body) { setTimeout(initObserver, 100); return; }
+    var observer = new MutationObserver(function() {
+      document.querySelectorAll('video#vid').forEach(function(v) {
+        if (!attached.has(v) && isTsUrl(v.src || v.currentSrc || '')) tryAttachMpegts(v);
+      });
+    });
+    observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['src'] });
+  }
+  initObserver();
+  document.addEventListener('play', function(e) {
+    if (e.target instanceof HTMLVideoElement) tryAttachMpegts(e.target);
+  }, true);
 })();
 
 /* ========== PROGRESS BAR TOOLTIP / HOVER ========== */

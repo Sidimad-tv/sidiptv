@@ -67,9 +67,10 @@ module.exports = async (req, res) => {
   if (!rawUrl) return res.status(400).json({ message: "Missing url" });
 
   // Normalize: ensure URL ends with a .php handler (portal.php or load.php)
-  // Insert /portal.php BEFORE any existing query string (create_link URLs have ?cmd embedded)
+  // Check base URL (before any query string) to avoid false negatives from create_link's ?http://...
   const action = params.action || "";
-  const url = /\.php$/i.test(rawUrl)
+  const urlBase = rawUrl.split("?")[0];
+  const url = /\.php$/i.test(urlBase)
     ? rawUrl
     : rawUrl.replace(/(\/?)(\?.*)?$/, (_m, _s, q) => "/portal.php" + (q || ""));
 

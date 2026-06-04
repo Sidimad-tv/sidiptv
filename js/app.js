@@ -49,6 +49,12 @@ function isM3U8(u) { return /\.m3u8|m3u8/i.test(u); }
 function isMPD(u) { return /\.mpd|mpd\b|dash/i.test(u); }
 function pUrl(u) {
   if (!u || (u.indexOf('http:') !== 0 && u.indexOf('https:') !== 0)) return u;
+  if (location.protocol === 'https:' && u.indexOf('https:') !== 0) {
+    var s = state.activeSource !== null && state.sources[state.activeSource] ? state.sources[state.activeSource] : null;
+    var mac = s && s.mac ? s.mac : '';
+    var portal = s && s.portal ? s.portal : '';
+    return '/api/stream?url=' + encodeURIComponent(u) + '&mac=' + encodeURIComponent(mac) + '&portal=' + encodeURIComponent(portal);
+  }
   return u;
 }
 

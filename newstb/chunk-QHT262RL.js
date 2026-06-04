@@ -133915,7 +133915,7 @@ var VjsPlayerComponent = class _VjsPlayerComponent {
     this.player.hlsQualitySelector({
       displayCurrentQuality: true
     });
-    this.player["aspectRatioPanel"]();
+    try { this.player["aspectRatioPanel"](); } catch (_) {}
   }
   proxyOptions() {
     if (this.options?.sources?.[0]?.src && !this.options.sources[0].src.startsWith("/api/stream")) {

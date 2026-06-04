@@ -67891,7 +67891,10 @@ var createPlaylistObject = (name, playlist, urlOrPath, uploadType) => {
   }, uploadType === "URL" ? { url: urlOrPath } : {}), uploadType === "FILE" ? { filePath: urlOrPath } : {});
 };
 var getExtensionFromUrl = (url) => {
-  return url.split(/[#?]/)[0].split(".").pop().trim();
+  const path = url.split(/[#?]/)[0];
+  const filename = path.substring(path.lastIndexOf("/") + 1);
+  const dotIndex = filename.lastIndexOf(".");
+  return dotIndex > 0 ? filename.substring(dotIndex + 1).trim() : "";
 };
 
 // src/app/player/components/html-video-player/html-video-player.component.ts
@@ -133932,7 +133935,9 @@ var VjsPlayerComponent = class _VjsPlayerComponent {
     this.proxyOptions();
     var _src = this.options?.sources?.[0]?.src || '';
     var _srcD = typeof _src === 'string' ? decodeURIComponent(_src) : _src;
-    if (typeof mpegts !== 'undefined' && (_srcD.includes('extension=ts') || _srcD.includes('.ts?'))) {
+    var _origUrl = _srcD.startsWith("/api/stream?url=") ? decodeURIComponent(_srcD.substring(16)) : _srcD;
+    var _ext = getExtensionFromUrl(_origUrl);
+    if (typeof mpegts !== 'undefined' && (_srcD.includes('extension=ts') || _srcD.includes('.ts?') || (_ext === "" && !_origUrl.match(/\.(m3u8|m3u|mp4|mpv|mkv|avi|webm|ogg)\b/i)))) {
       this._mp = mpegts.createPlayer({ type: 'mpegts', isLive: true, url: _src });
       this._mp.attachMediaElement(this.target.nativeElement);
       this._mp.load();
@@ -133973,17 +133978,33 @@ var VjsPlayerComponent = class _VjsPlayerComponent {
       if (!src.src.startsWith("/api/stream")) {
         src.src = "/api/stream?url=" + encodeURIComponent(src.src);
       }
-      if (this._mp) {
-        var _sd = typeof src.src === 'string' ? decodeURIComponent(src.src) : src.src;
-        if (typeof mpegts !== 'undefined' && (_sd.includes('extension=ts') || _sd.includes('.ts?'))) {
-          this._mp.destroy();
-          this._mp = mpegts.createPlayer({ type: 'mpegts', isLive: true, url: src.src });
-          this._mp.attachMediaElement(this.target.nativeElement);
-          this._mp.load();
-          this._mp.play();
+      var _sd = typeof src.src === 'string' ? decodeURIComponent(src.src) : src.src;
+      var _origUrl = _sd.startsWith("/api/stream?url=") ? decodeURIComponent(_sd.substring(16)) : _sd;
+      var _ext = getExtensionFromUrl(_origUrl);
+      var _useMpegts = typeof mpegts !== 'undefined' && (_sd.includes('extension=ts') || _sd.includes('.ts?') || (_ext === "" && !_origUrl.match(/\.(m3u8|m3u|mp4|mpv|mkv|avi|webm|ogg)\b/i)));
+      if (_useMpegts) {
+        if (this._mp) { this._mp.destroy(); }
+        else if (this.player) { this.player.dispose(); this.player = void 0; }
+        this._mp = mpegts.createPlayer({ type: 'mpegts', isLive: true, url: src.src });
+        this._mp.attachMediaElement(this.target.nativeElement);
+        this._mp.load();
+        this._mp.play();
+      } else {
+        if (this._mp) { this._mp.destroy(); this._mp = null; }
+        if (!this.player) {
+          this.player = video_es_default2(this.target.nativeElement, __spreadProps(__spreadValues({}, this.options), { autoplay: true }), () => {
+            console.log("Setting VideoJS player initial volume to:", this.volume);
+            this.player.volume(this.volume);
+            this.player.on("volumechange", () => {
+              const currentVolume = this.player.volume();
+              localStorage.setItem("volume", currentVolume.toString());
+            });
+          });
+          this.player.hlsQualitySelector({ displayCurrentQuality: true });
+          try { this.player["aspectRatioPanel"](); } catch (_) {}
+        } else {
+          this.player.src(src);
         }
-      } else if (this.player) {
-        this.player.src(src);
       }
     }
     if (changes.volume?.currentValue !== void 0 && this.player) {

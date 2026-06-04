@@ -67891,7 +67891,10 @@ var createPlaylistObject = (name, playlist, urlOrPath, uploadType) => {
   }, uploadType === "URL" ? { url: urlOrPath } : {}), uploadType === "FILE" ? { filePath: urlOrPath } : {});
 };
 var getExtensionFromUrl = (url) => {
-  return url.split(/[#?]/)[0].split(".").pop().trim();
+  const path = url.split(/[#?]/)[0];
+  const filename = path.substring(path.lastIndexOf("/") + 1);
+  const dotIndex = filename.lastIndexOf(".");
+  return dotIndex > 0 ? filename.substring(dotIndex + 1).trim() : "";
 };
 
 // src/app/player/components/html-video-player/html-video-player.component.ts

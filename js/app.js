@@ -13,8 +13,12 @@ var state = {
   favs: [],
   mpegtsPlayer: null,
   isPlaying: false,
-  seriesDetail: null, /* {series, seasons, episodes} */
+  seriesDetail: null,
   seriesSeason: null,
+  chPage: 1,
+  chTotal: 0,
+  chPerPage: 14,
+  chLoading: false,
 };
 
 /* dom refs */
@@ -69,6 +73,9 @@ function switchView(view) {
   search.value = '';
   mnC.innerHTML = '';
   viewSub.textContent = '';
+  /* Hide categories sidebar for non-tv views */
+  var sc = document.getElementById('sb-cats');
+  if (sc) { if (view === 'tv' || view === 'movies' || view === 'series') sc.classList.remove('hidden'); else sc.classList.add('hidden'); }
 
   if (view === 'dash') { renderDash(); return; }
   if (view === 'favs') { renderFavs(); return; }
@@ -151,42 +158,45 @@ async function activateSource(idx) {
 
 async function loadContent(mode) {
   var container = document.createElement('div');
-  var catsEl = document.createElement('div');
-  catsEl.className = 'cats';
-  catsEl.id = 'cats';
-  container.appendChild(catsEl);
   var listEl = document.createElement('div');
   listEl.className = 'ch-list';
   listEl.id = 'ch-list';
   container.appendChild(listEl);
   mnC.appendChild(container);
+  var catsList = document.getElementById('cats-list');
+  if (catsList) catsList.innerHTML = '';
 
   try {
     if (state.clientType === 'stalker') {
-      await loadStalkerContent(mode, listEl, catsEl);
+      await loadStalkerContent(mode, listEl);
     } else if (state.clientType === 'xtream') {
-      await loadXtreamContent(mode, listEl, catsEl);
+      await loadXtreamContent(mode, listEl);
     } else if (state.clientType === 'm3u') {
-      await loadM3uContent(mode, listEl, catsEl);
+      await loadM3uContent(mode, listEl);
     }
   } catch(e) {
     listEl.innerHTML = '<div class="emp"><div class="ic">⚠️</div>' + esc(e.message) + '</div>';
   }
 }
 
-async function loadStalkerContent(mode, listEl, catsEl) {
+async function loadStalkerContent(mode, listEl) {
   var c = state.client;
   if (mode === 'tv') {
     var g = await c.getGenres();
-    renderCats(g, catsEl);
-    var chs = await c.getChannels();
-    state.allItems = chs;
-    renderList(chs, listEl);
+    renderCats(g);
+    var result = await c.getChannels(state.curCat === 'all' ? null : state.curCat, 1);
+    state.allItems = result.channels;
+    state.chTotal = result.total;
+    state.chPerPage = result.perPage;
+    state.chPage = 1;
+    renderList(result.channels, listEl);
+    if (result.total > result.channels.length) addLoadMore(listEl);
     viewTitle.textContent = 'Live TV';
+    viewSub.textContent = result.total + ' channels';
   } else {
     var t = mode === 'series' ? 'series' : 'vod';
     var g = await c.getVodCategories(t);
-    renderCats(g, catsEl);
+    renderCats(g);
     var its = await c.getVodList('all', t);
     state.allItems = its;
     renderGrid(its, listEl);
@@ -194,30 +204,30 @@ async function loadStalkerContent(mode, listEl, catsEl) {
   }
 }
 
-async function loadXtreamContent(mode, listEl, catsEl) {
+async function loadXtreamContent(mode, listEl) {
   var c = state.client;
   if (mode === 'tv') {
     var g = await c.getLiveCategories();
-    renderCats(g, catsEl);
+    renderCats(g);
     var chs = await c.getLiveStreams();
     state.allItems = chs;
     renderList(chs, listEl);
   } else if (mode === 'movies') {
     var g = await c.getVodCategories();
-    renderCats(g, catsEl);
+    renderCats(g);
     var its = await c.getVodStreams();
     state.allItems = its;
     renderGrid(its, listEl);
   } else if (mode === 'series') {
     var g = await c.getSeriesCategories();
-    renderCats(g, catsEl);
+    renderCats(g);
     var its = await c.getSeriesStreams();
     state.allItems = its;
     renderGrid(its, listEl);
   }
 }
 
-async function loadM3uContent(mode, listEl, catsEl) {
+async function loadM3uContent(mode, listEl) {
   if (mode !== 'tv') {
     listEl.innerHTML = '<div class="emp">M3U supports Live TV only</div>';
     return;
@@ -234,7 +244,7 @@ async function loadM3uContent(mode, listEl, catsEl) {
       if (ch.genre_id) groups[ch.genre_id] = { title: ch.genre_id, id: ch.genre_id };
     });
     var cats = Object.keys(groups).map(function(k) { return groups[k]; });
-    renderCats(cats, catsEl);
+    renderCats(cats);
     renderList(its, listEl);
   } catch(e) {
     listEl.innerHTML = '<div class="emp"><div class="ic">⚠️</div>' + esc(e.message) + '</div>';
@@ -268,31 +278,93 @@ function parseM3u(text) {
   });
 }
 
-function renderCats(g, el) {
+function renderCats(g) {
   state.cats = g || [];
+  var el = document.getElementById('cats-list');
+  var sec = document.getElementById('sb-cats');
+  if (!el) return;
   el.innerHTML = '';
+  if (!g || !g.length) { if (sec) sec.classList.add('hidden'); return; }
+  if (sec) sec.classList.remove('hidden');
   var allBtn = document.createElement('button');
   allBtn.className = 'act';
-  allBtn.textContent = 'All';
-  allBtn.addEventListener('click', function() {
-    el.querySelectorAll('button').forEach(function(x) { x.classList.remove('act'); });
-    allBtn.classList.add('act');
-    state.curCat = 'all';
-    filterList();
-  });
+  allBtn.innerHTML = '<span>All</span><span class="cat-count">' + (state.chTotal || '') + '</span>';
+  allBtn.addEventListener('click', function() { onCatClick(allBtn, 'all'); });
   el.appendChild(allBtn);
   (g || []).forEach(function(cat) {
     var b = document.createElement('button');
-    b.textContent = cat.title || cat.name || cat.category_name || 'Unnamed';
-    b.addEventListener('click', function() {
-      el.querySelectorAll('button').forEach(function(x) { x.classList.remove('act'); });
-      b.classList.add('act');
-      state.curCat = cat.id || cat.category_id || 'all';
-      filterList();
-    });
+    b.innerHTML = '<span>' + esc(cat.title || cat.name || cat.category_name || 'Unnamed') + '</span>';
+    b.addEventListener('click', function() { onCatClick(b, cat.id || cat.category_id || 'all'); });
     el.appendChild(b);
   });
   state.curCat = 'all';
+}
+
+function onCatClick(btn, catId) {
+  var el = document.getElementById('cats-list');
+  if (el) el.querySelectorAll('button').forEach(function(x) { x.classList.remove('act'); });
+  btn.classList.add('act');
+  state.curCat = catId;
+  /* Stalker sources: reload channels from server for this category */
+  if (state.clientType === 'stalker' && state.view === 'tv') {
+    reloadChannels(catId);
+  } else {
+    filterList();
+  }
+}
+
+async function reloadChannels(catId) {
+  var el = document.getElementById('ch-list');
+  if (!el) return;
+  el.innerHTML = '<div style="padding:40px;text-align:center;color:var(--text3)"><div class="ld" style="position:static;transform:none"><div class="sp"></div></div></div>';
+  /* Remove existing load-more button */
+  var lm = document.getElementById('ld-more');
+  if (lm) lm.parentElement.remove();
+  try {
+    var result = await state.client.getChannels(catId === 'all' ? null : catId, 1);
+    state.allItems = result.channels;
+    state.chTotal = result.total;
+    state.chPerPage = result.perPage;
+    state.chPage = 1;
+    renderList(result.channels, el);
+    if (result.total > result.channels.length) addLoadMore(el);
+    viewTitle.textContent = 'Live TV';
+    viewSub.textContent = result.total + ' channels';
+  } catch(e) {
+    el.innerHTML = '<div class="emp"><div class="ic">⚠️</div>' + esc(e.message) + '</div>';
+  }
+}
+
+function addLoadMore(el) {
+  var lm = document.createElement('div');
+  lm.style.cssText = 'text-align:center;padding:16px';
+  lm.innerHTML = '<button id="ld-more" style="background:var(--accent);color:#fff;border:none;padding:10px 32px;border-radius:20px;font-size:13px;font-weight:600;cursor:pointer">Load More</button>';
+  el.parentElement.appendChild(lm);
+  document.getElementById('ld-more').addEventListener('click', loadMoreChannels);
+}
+
+async function loadMoreChannels() {
+  if (state.chLoading) return;
+  state.chLoading = true;
+  var btn = document.getElementById('ld-more');
+  if (btn) { btn.textContent = 'Loading...'; btn.disabled = true; }
+  try {
+    var nextPage = state.chPage + 1;
+    var result = await state.client.getChannels(state.curCat === 'all' ? null : state.curCat, nextPage);
+    if (result.channels.length) {
+      state.allItems = state.allItems.concat(result.channels);
+      state.chPage = nextPage;
+      var el = document.getElementById('ch-list');
+      if (el) renderList(state.allItems, el);
+      if (result.channels.length < state.chPerPage || state.allItems.length >= state.chTotal) {
+        if (btn) btn.parentElement.removeChild(btn);
+      }
+    } else {
+      if (btn) btn.parentElement.removeChild(btn);
+    }
+  } catch(e) { console.log('Load more error:', e); }
+  state.chLoading = false;
+  if (btn) { btn.textContent = 'Load More'; btn.disabled = false; }
 }
 
 function filterList() {
@@ -303,7 +375,7 @@ function filterList() {
       return String(id) === String(state.curCat);
     });
   }
-  var el = $('ch-list');
+  var el = document.getElementById('ch-list');
   if (!el) return;
   if (state.view === 'tv') renderList(items, el);
   else if (state.view === 'series') renderGrid(items, el);

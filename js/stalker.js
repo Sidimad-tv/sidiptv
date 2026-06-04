@@ -199,15 +199,25 @@ class StalkerClient {
     return all;
   }
 
-  async getChannels(genreId) {
+  async getChannels(genreId, page) {
     var params = { type: 'itv', force_ch_link_check: '0', sortby: 'number' };
     if (genreId && genreId !== 'all') { params.genre = genreId; params.category = genreId; }
     else { params.genre = '*'; params.category = '*'; }
-    var all = await this._fetchAllPages('get_ordered_list', params);
-    console.log('[Stalker] getChannels total:', all.length);
-    return all.map(function(ch) {
-      return { id: ch.id, number: ch.number, name: ch.name, url: ch.cmd, logo: ch.logo || ch.logo_src || ch.tv_logo, genre_id: ch.tv_genre_id };
-    });
+    params.p = String(page || 1);
+    var data = await this._request('get_ordered_list', params);
+    if (!data || !data.js) return [];
+    var list = Array.isArray(data.js) ? data.js : (data.js.data || []);
+    var total = Number(data.js.total_items || data.total_items) || 0;
+    var perPage = Number(data.js.max_page_items || data.max_page_items) || list.length;
+    console.log('[Stalker] getChannels page ' + (page || 1) + ':', list.length, 'total:', total);
+    return {
+      channels: list.map(function(ch) {
+        return { id: ch.id, number: ch.number, name: ch.name, url: ch.cmd, logo: ch.logo || ch.logo_src || ch.tv_logo, genre_id: ch.tv_genre_id };
+      }),
+      total: total,
+      perPage: perPage,
+      page: page || 1
+    };
   }
 
   async getVodInfo(id, type) {

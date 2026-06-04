@@ -1,5 +1,9 @@
 const axios = require("axios");
 
+function stbSerial(mac) {
+  return require("crypto").createHash("md5").update(mac.replace(/:/g, "").toUpperCase()).digest("hex").slice(0, 13).toUpperCase();
+}
+
 module.exports = async (req, res) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
@@ -9,7 +13,12 @@ module.exports = async (req, res) => {
   if (!url) return res.status(400).json({ message: "Missing url" });
 
   try {
-    const headers = { Cookie: `mac=${macAddress || ""}` };
+    const headers = {
+      "User-Agent": "Mozilla/5.0 (QtEmbedded; U; Linux; C) AppleWebKit/533.3 (KHTML, like Gecko) MAG200 stbapp ver: 2 rev: 250 Safari/533.3",
+      "X-User-Agent": "Model: MAG200; Link: Ethernet",
+      Cookie: `mac=${macAddress || ""}; stb_lang=en; timezone=Europe/London`,
+      Accept: "*/*"
+    };
     if (token) headers["Authorization"] = `Bearer ${token}`;
     if (macAddress) params.mac = macAddress;
 

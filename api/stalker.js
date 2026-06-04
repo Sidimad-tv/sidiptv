@@ -67,15 +67,20 @@ module.exports = async (req, res) => {
   if (!rawUrl) return res.status(400).json({ message: "Missing url" });
 
   // Normalize: ensure URL ends with a .php handler (portal.php or load.php)
+  // Insert /portal.php BEFORE any existing query string (create_link URLs have ?cmd embedded)
+  const action = params.action || "";
   const url = /\.php$/i.test(rawUrl)
     ? rawUrl
     : rawUrl.replace(/(\/?)(\?.*)?$/, (_m, _s, q) => "/portal.php" + (q || ""));
 
-  const action = params.action || "";
   let effectiveToken = token;
 
   // Auto warmup (handshake+profile) before data calls — always, even with token
-  if (["get_genres", "get_categories", "get_ordered_list", "get_channels"].includes(action) && macAddress) {
+  // For create_link: only warmup if URL is bare host:port (no path — needs auth via warmup)
+  const bareUrl = !rawUrl.split("?")[0].slice(rawUrl.indexOf("//") + 2).includes("/");
+  const needsWarmup = (["get_genres", "get_categories", "get_ordered_list", "get_channels"].includes(action)) ||
+    (action === "create_link" && bareUrl);
+  if (needsWarmup && macAddress) {
     const pt = await warmupSession(url.split("?")[0], macAddress);
     if (pt) effectiveToken = pt;
   }

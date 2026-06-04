@@ -82,7 +82,7 @@ module.exports = async (req, res) => {
   let effectiveToken = token;
 
   // Auto warmup (handshake+profile) before data calls — always, even with token
-  // For create_link: only warmup if raw URL is bare host:port (no path — needs auth via warmup)
+  // For create_link: try without warmup first; if empty cmd, retry with warmup
   const bareUrl = !baseRaw.slice(baseRaw.indexOf("//") + 2).includes("/");
   const needsWarmup = (["get_genres", "get_categories", "get_ordered_list", "get_channels"].includes(action)) ||
     (action === "create_link" && bareUrl);
@@ -120,6 +120,26 @@ module.exports = async (req, res) => {
       }
       if (payload.startsWith("{") || payload.startsWith("[")) {
         try { payload = JSON.parse(payload); } catch (_) {}
+      }
+    }
+
+    // For create_link: if empty cmd and no warmup was done, retry with warmup
+    if (action === "create_link" && !needsWarmup && macAddress && (!payload?.js?.cmd && !payload?.cmd)) {
+      const pt = await warmupSession(baseUrl, macAddress);
+      if (pt) {
+        const retryHeaders = MAG_HEADERS(macAddress, pt);
+        if (macAddress) params.mac = macAddress;
+        const retryResult = await axios.get(baseUrl, { params, headers: retryHeaders, timeout: 30000, responseType: "text" });
+        let retryPayload = retryResult.data;
+        if (typeof retryPayload === "string") {
+          retryPayload = retryPayload.trim().replace(/^\/\/[^\n]*\n/, "");
+          if (retryPayload.startsWith("<?xml")) {
+            const m = retryPayload.match(/<response[^>]*>([\s\S]*?)<\/response>/i);
+            if (m) retryPayload = m[1].trim();
+          }
+          try { retryPayload = JSON.parse(retryPayload); } catch (_) {}
+        }
+        if (retryPayload?.js?.cmd || retryPayload?.cmd) payload = retryPayload;
       }
     }
 

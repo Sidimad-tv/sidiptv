@@ -28,7 +28,8 @@
                 'use strict';
                 var attached = new WeakSet();
                 function isTsUrl(url) {
-                    return url && (url.includes('extension=ts') || url.includes('.ts?') || url.endsWith('.ts'));
+                    var d = typeof url === 'string' ? decodeURIComponent(url) : url;
+                    return d && (d.includes('extension=ts') || d.includes('.ts?') || d.endsWith('.ts'));
                 }
                 function tryAttachMpegts(video) {
                     if (attached.has(video) || typeof mpegts === 'undefined') return false;
@@ -48,14 +49,18 @@
                         return false;
                     }
                 }
-                var observer = new MutationObserver(function() {
-                    document.querySelectorAll('video.video-js, video#video-player').forEach(function(v) {
-                        if (!attached.has(v) && isTsUrl(v.src || v.currentSrc || '')) {
-                            tryAttachMpegts(v);
-                        }
+                function initObserver() {
+                    if (!document.body) { setTimeout(initObserver, 100); return; }
+                    var observer = new MutationObserver(function() {
+                        document.querySelectorAll('video.video-js, video#video-player').forEach(function(v) {
+                            if (!attached.has(v) && isTsUrl(v.src || v.currentSrc || '')) {
+                                tryAttachMpegts(v);
+                            }
+                        });
                     });
-                });
-                observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['src'] });
+                    observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['src'] });
+                }
+                initObserver();
                 document.addEventListener('play', function(e) {
                     if (e.target instanceof HTMLVideoElement) tryAttachMpegts(e.target);
                 }, true);

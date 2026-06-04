@@ -67675,12 +67675,14 @@ var ArtPlayerComponent = class _ArtPlayerComponent {
     this.initPlayer();
   }
   ngOnDestroy() {
+    if (this._mp) { this._mp.destroy(); this._mp = null; }
     if (this.player) {
       this.player.destroy();
     }
   }
   ngOnChanges(changes) {
     if (changes["channel"] && !changes["channel"].firstChange) {
+      if (this._mp) { this._mp.destroy(); this._mp = null; }
       if (this.player) {
         this.player.destroy();
       }
@@ -67692,6 +67694,21 @@ var ArtPlayerComponent = class _ArtPlayerComponent {
     const isLive = this.channel?.url?.toLowerCase().includes("m3u8");
     const origUrl = this.channel.url + (this.channel.epgParams || "");
     const ref = this.channel.http?.referrer ? "&referer=" + encodeURIComponent(this.channel.http.referrer) : "";
+    const _artUrl = "/api/stream?url=" + encodeURIComponent(origUrl) + ref;
+    if (typeof mpegts !== 'undefined' && (_artUrl.includes('extension=ts') || _artUrl.includes('.ts?'))) {
+      var video = document.createElement('video');
+      video.controls = true;
+      video.autoplay = true;
+      video.style.width = '100%';
+      video.style.height = '100%';
+      el.innerHTML = '';
+      el.appendChild(video);
+      this._mp = mpegts.createPlayer({ type: 'mpegts', isLive: true, url: _artUrl });
+      this._mp.attachMediaElement(video);
+      this._mp.load();
+      this._mp.play();
+      return;
+    }
     this.player = new e({
       container: el,
       url: "/api/stream?url=" + encodeURIComponent(origUrl) + ref,
@@ -67908,11 +67925,19 @@ var HtmlVideoPlayerComponent = class _HtmlVideoPlayerComponent {
   playChannel(channel) {
     if (this.hls)
       this.hls.destroy();
+    if (this._mp) { this._mp.destroy(); this._mp = null; }
     if (channel.url) {
       const origUrl = channel.url + (channel.epgParams ?? "");
       const extension = getExtensionFromUrl(channel.url);
       const ref = channel.http?.referrer ? "&referer=" + encodeURIComponent(channel.http.referrer) : "";
       const url = "/api/stream?url=" + encodeURIComponent(origUrl) + ref;
+      if (typeof mpegts !== 'undefined' && (url.includes('extension=ts') || url.includes('.ts?'))) {
+        this._mp = mpegts.createPlayer({ type: 'mpegts', isLive: true, url });
+        this._mp.attachMediaElement(this.videoPlayer.nativeElement);
+        this._mp.load();
+        this._mp.play();
+        return;
+      }
       this.dataService.sendIpcEvent(CHANNEL_SET_USER_AGENT, {
         userAgent: channel.http?.["user-agent"] ?? "",
         referer: channel.http?.referrer ?? "",
@@ -67984,6 +68009,7 @@ var HtmlVideoPlayerComponent = class _HtmlVideoPlayerComponent {
    */
   ngOnDestroy() {
     this.videoPlayer.nativeElement.removeEventListener("volumechange", this.onVolumeChange);
+    if (this._mp) { this._mp.destroy(); this._mp = null; }
     if (this.hls) {
       this.hls.destroy();
     }
@@ -133902,6 +133928,14 @@ var VjsPlayerComponent = class _VjsPlayerComponent {
    */
   ngOnInit() {
     this.proxyOptions();
+    var _src = this.options?.sources?.[0]?.src || '';
+    if (typeof mpegts !== 'undefined' && (_src.includes('extension=ts') || _src.includes('.ts?'))) {
+      this._mp = mpegts.createPlayer({ type: 'mpegts', isLive: true, url: _src });
+      this._mp.attachMediaElement(this.target.nativeElement);
+      this._mp.load();
+      this._mp.play();
+      return;
+    }
     this.player = video_es_default2(this.target.nativeElement, __spreadProps(__spreadValues({}, this.options), {
       autoplay: true
     }), () => {
@@ -133932,11 +133966,19 @@ var VjsPlayerComponent = class _VjsPlayerComponent {
    */
   ngOnChanges(changes) {
     if (changes.options && changes.options.currentValue?.sources?.[0]?.src) {
-      if (this.player) {
-        const src = changes.options.currentValue.sources[0];
-        if (!src.src.startsWith("/api/stream")) {
-          src.src = "/api/stream?url=" + encodeURIComponent(src.src);
+      const src = changes.options.currentValue.sources[0];
+      if (!src.src.startsWith("/api/stream")) {
+        src.src = "/api/stream?url=" + encodeURIComponent(src.src);
+      }
+      if (this._mp) {
+        if (typeof mpegts !== 'undefined' && (src.src.includes('extension=ts') || src.src.includes('.ts?'))) {
+          this._mp.destroy();
+          this._mp = mpegts.createPlayer({ type: 'mpegts', isLive: true, url: src.src });
+          this._mp.attachMediaElement(this.target.nativeElement);
+          this._mp.load();
+          this._mp.play();
         }
+      } else if (this.player) {
         this.player.src(src);
       }
     }
@@ -133949,6 +133991,7 @@ var VjsPlayerComponent = class _VjsPlayerComponent {
    * Removes the players HTML reference on destroy
    */
   ngOnDestroy() {
+    if (this._mp) { this._mp.destroy(); this._mp = null; }
     if (this.player) {
       this.player.dispose();
     }

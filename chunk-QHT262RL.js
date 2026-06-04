@@ -134112,8 +134112,7 @@ var WebPlayerViewComponent = class _WebPlayerViewComponent {
     effect(() => {
       this.player = this.settings()?.player;
       this.setChannel(this.streamUrl());
-      if (this.player === VideoPlayer.VideoJs)
-        this.setVjsOptions(this.streamUrl());
+      this.setVjsOptions(this.streamUrl());
     });
   }
   setVjsOptions(streamUrl) {

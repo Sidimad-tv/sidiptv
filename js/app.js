@@ -46,15 +46,10 @@ function saveFavs(f) { localStorage.setItem('s_fav', JSON.stringify(f)); state.f
 /* player helpers */
 function isTS(u) { return /\.ts\b|extension=ts|\.m2ts|\.tsv/i.test(u); }
 function isM3U8(u) { return /\.m3u8|m3u8/i.test(u); }
+function isMPD(u) { return /\.mpd|mpd\b|dash/i.test(u); }
 function pUrl(u) {
   if (!u || (u.indexOf('http:') !== 0 && u.indexOf('https:') !== 0)) return u;
-  if (location.protocol !== 'https:' || u.indexOf('https:') === 0) return u;
-  var pu = location.origin + '/api/stream?url=' + encodeURIComponent(u);
-  if (state.client) {
-    if (state.client.mac) pu += '&macAddress=' + encodeURIComponent(state.client.mac);
-    if (state.client.portalUrl) pu += '&portal=' + encodeURIComponent(state.client.portalUrl);
-  }
-  return pu;
+  return u;
 }
 
 /* sidebar nav */
@@ -542,6 +537,7 @@ async function playItem(item, mode, all) {
   /* Clean up any existing player */
   if (state.mpegtsPlayer) { try { state.mpegtsPlayer.destroy(); } catch(e) {} state.mpegtsPlayer = null; }
   if (state.hlsPlayer) { try { state.hlsPlayer.destroy(); } catch(e) {} state.hlsPlayer = null; }
+  if (state.shakaPlayer) { try { state.shakaPlayer.destroy(); } catch(e) {} state.shakaPlayer = null; }
   vid.pause();
   vid.removeAttribute('src');
   vid.load();
@@ -571,14 +567,17 @@ async function playItem(item, mode, all) {
 
   proxiedUrl = pUrl(url);
 
-  /* Clean up old state.hlsPlayer */
+  /* Clean up old players */
   state.hlsPlayer = null;
+  if (state.shakaPlayer) { try { state.shakaPlayer.destroy(); } catch(e) {} state.shakaPlayer = null; }
 
   /* Detect stream format */
   var isTsUrl = isTS(url) || isTS(proxiedUrl);
   var isHlsUrl = isM3U8(url) || isM3U8(proxiedUrl);
+  var isDashUrl = isMPD(url) || isMPD(proxiedUrl);
   var mpegtsOk = isTsUrl && typeof mpegts !== 'undefined' && mpegts.isSupported && mpegts.isSupported();
   var hlsOk = isHlsUrl && typeof Hls !== 'undefined' && Hls.isSupported && Hls.isSupported();
+  var dashOk = isDashUrl && typeof shaka !== 'undefined' && shaka.Player && shaka.Player.isSupported();
 
   /* Try mpegts.js for TS streams */
   if (mpegtsOk) {
@@ -610,6 +609,17 @@ async function playItem(item, mode, all) {
     } catch(e) { console.log('[Play] hls error:', e); }
   }
 
+  /* Try shaka-player for DASH streams */
+  if (dashOk) {
+    try {
+      state.shakaPlayer = new shaka.Player();
+      state.shakaPlayer.attach(vid, true);
+      state.shakaPlayer.addEventListener('error', function() { ld.classList.add('hidden'); plyInfo.textContent = '⚠️ DASH error'; });
+      state.shakaPlayer.load(proxiedUrl).then(function() { vid.play().catch(function() {}); ld.classList.add('hidden'); }).catch(function(e) { console.log('[Play] shaka error:', e); ld.classList.add('hidden'); plyInfo.textContent = '⚠️ DASH load error'; });
+      return;
+    } catch(e) { console.log('[Play] shaka init error:', e); }
+  }
+
   /* Native playback as final fallback */
   vid.src = proxiedUrl;
   vid.load();
@@ -626,6 +636,7 @@ function closePlayer() {
   ply.classList.remove('ctrl-show');
   if (state.mpegtsPlayer) { try { state.mpegtsPlayer.destroy(); } catch(e) {} state.mpegtsPlayer = null; }
   if (state.hlsPlayer) { try { state.hlsPlayer.destroy(); } catch(e) {} state.hlsPlayer = null; }
+  if (state.shakaPlayer) { try { state.shakaPlayer.destroy(); } catch(e) {} state.shakaPlayer = null; }
   vid.pause();
   vid.removeAttribute('src');
   vid.load();

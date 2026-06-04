@@ -3,6 +3,7 @@
     "api/*.js": { "maxDuration": 30 }
   },
   "rewrites": [
+    { "source": "/newstb/(.*)", "destination": "/newstb/index.html" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }

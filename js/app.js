@@ -464,9 +464,9 @@ async function playItem(item, mode, all) {
   vid.load();
   ld.classList.remove('hidden');
   ply.classList.add('show');
+  ply.classList.add('ctrl-show');
   plyInfo.textContent = item.name || '';
   state.selCh = item;
-  resetHideTimer();
 
   var cmd = item.url || item.cmd || '';
   var url = cmd;
@@ -540,8 +540,7 @@ async function playItem(item, mode, all) {
 
 function closePlayer() {
   ply.classList.remove('show');
-  clearTimeout(hideTimer);
-  ply.querySelectorAll('.top-bar, .bottom-bar').forEach(function(el) { el.style.opacity = '1'; });
+  ply.classList.remove('ctrl-show');
   if (state.mpegtsPlayer) { try { state.mpegtsPlayer.destroy(); } catch(e) {} state.mpegtsPlayer = null; }
   if (state.hlsPlayer) { try { state.hlsPlayer.destroy(); } catch(e) {} state.hlsPlayer = null; }
   vid.pause();
@@ -561,7 +560,8 @@ vid.addEventListener('error', function() {
 });
 vid.addEventListener('timeupdate', function() {
   if (vid.duration) {
-    prFill.style.width = (vid.currentTime / vid.duration * 100) + '%';
+    var fill = document.getElementById('pr-fill');
+    if (fill) fill.style.width = (vid.currentTime / vid.duration * 100) + '%';
     tm.textContent = fmtTime(vid.currentTime) + ' / ' + fmtTime(vid.duration);
   }
 });
@@ -594,29 +594,6 @@ document.addEventListener('keydown', function(e) {
   if (e.key === 'Escape' && ply.classList.contains('show')) closePlayer();
   if (e.key === ' ' && ply.classList.contains('show')) { e.preventDefault(); if (vid.paused) vid.play().catch(function() {}); else vid.pause(); }
 });
-
-/* Auto-hide player controls */
-var hideTimer = null;
-function resetHideTimer() {
-  ply.querySelectorAll('.top-bar, .bottom-bar').forEach(function(el) { el.style.opacity = '1'; });
-  clearTimeout(hideTimer);
-  hideTimer = setTimeout(function() {
-    if (state.isPlaying) ply.querySelectorAll('.bar, .b-bot').forEach(function(el) { el.style.opacity = '0'; });
-  }, 3000);
-}
-ply.addEventListener('mousemove', resetHideTimer);
-ply.addEventListener('click', resetHideTimer);
-resetHideTimer();
-
-function closePlayer() {
-  ply.classList.remove('show');
-  clearTimeout(hideTimer);
-  ply.querySelectorAll('.top-bar, .bottom-bar').forEach(function(el) { el.style.opacity = '1'; });
-  if (state.mpegtsPlayer) { state.mpegtsPlayer.destroy(); state.mpegtsPlayer = null; }
-  vid.pause();
-  vid.removeAttribute('src');
-  vid.load();
-}
 
 /* search */
 search.addEventListener('input', function() {
@@ -715,9 +692,9 @@ modTabs.addEventListener('click', function(e) {
 function showModForm(type) {
   var html = '';
   if (type === 'stalker') {
-    html = '<label>Source Name</label><input id="m-name" placeholder="My Portal" value="Portal">' +
-      '<label>Portal URL</label><input id="m-portal" placeholder="http://example.com/c">' +
-      '<label>MAC Address</label><input id="m-mac" placeholder="00:1A:2B:3C:4D:5E">';
+    html = '<label>Source Name</label><input id="m-name" placeholder="My Portal" value="Ghaouti">' +
+      '<label>Portal URL</label><input id="m-portal" placeholder="http://example.com/c" value="http://ghaouti1.com:80">' +
+      '<label>MAC Address</label><input id="m-mac" placeholder="00:1A:2B:3C:4D:5E" value="00:1A:79:B5:35:53">';
   } else if (type === 'xtream') {
     html = '<label>Source Name</label><input id="m-name" placeholder="My Xtream" value="Xtream">' +
       '<label>Server URL</label><input id="m-server" placeholder="http://example.com:8080">' +

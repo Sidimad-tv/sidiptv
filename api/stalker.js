@@ -63,14 +63,17 @@ module.exports = async (req, res) => {
   res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
   if (req.method === "OPTIONS") return res.status(200).end();
 
-  const { url, macAddress, token, ...params } = req.query;
-  if (!url) return res.status(400).json({ message: "Missing url" });
+  let { url: rawUrl, macAddress, token, ...params } = req.query;
+  if (!rawUrl) return res.status(400).json({ message: "Missing url" });
+
+  // Normalize: ensure URL ends with a .php handler (portal.php or load.php)
+  const url = /\.php$/i.test(rawUrl) ? rawUrl : rawUrl.replace(/\/+$/, "") + "/portal.php";
 
   const action = params.action || "";
   let effectiveToken = token;
 
-  // Auto warmup (handshake+profile) before data calls
-  if (!effectiveToken && ["get_genres", "get_categories", "get_ordered_list", "get_channels"].includes(action) && macAddress) {
+  // Auto warmup (handshake+profile) before data calls — always, even with token
+  if (["get_genres", "get_categories", "get_ordered_list", "get_channels"].includes(action) && macAddress) {
     const pt = await warmupSession(url, macAddress);
     if (pt) effectiveToken = pt;
   }

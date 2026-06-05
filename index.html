@@ -68,8 +68,76 @@
                 }, true);
             })();
         </script>
-    <link rel="stylesheet" href="styles.css"></head>
-    <body class="mat-app-background">
-        <app-root></app-root>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+      #presets-btn{position:fixed;bottom:20px;right:20px;z-index:9999;width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#00d4a0,#00b386);border:none;color:#fff;font-size:24px;cursor:pointer;box-shadow:0 4px 16px rgba(0,212,160,0.4);transition:all 0.2s;display:flex;align-items:center;justify-content:center}
+      #presets-btn:hover{transform:scale(1.1);box-shadow:0 6px 24px rgba(0,212,160,0.5)}
+      #presets-panel{position:fixed;bottom:84px;right:20px;z-index:9998;width:320px;max-height:420px;background:#1a1a28;border:1px solid #22223a;border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,0.5);overflow:hidden;display:none;flex-direction:column}
+      #presets-panel.show{display:flex}
+      #presets-panel h3{padding:14px 16px 10px;margin:0;font-size:13px;color:#7878a0;text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid #22223a;flex-shrink:0}
+      #presets-list{overflow-y:auto;padding:6px;flex:1}
+      #presets-list button{display:block;width:100%;padding:10px 14px;background:none;border:none;color:#c8c8e0;text-align:left;font-size:13px;cursor:pointer;border-radius:8px;transition:all 0.15s;margin-bottom:2px;line-height:1.4}
+      #presets-list button:hover{background:rgba(0,212,160,0.12);color:#00d4a0}
+      #presets-list button .pp-name{font-weight:600}
+      #presets-list button .pp-url{font-size:11px;color:#555570}
+      #presets-list button .pp-mac{font-size:11px;color:#555570}
+      #presets-list button:active{transform:scale(0.98)}
+    </style>
+  </head>
+  <body class="mat-app-background">
+    <app-root></app-root>
+
+    <button id="presets-btn" title="Portal Presets">📡</button>
+    <div id="presets-panel">
+      <h3>Portal Presets</h3>
+      <div id="presets-list"></div>
+    </div>
+
+    <script>
+      (function(){
+        var presets = [
+          {name:"Ghaouti",url:"http://ghaouti1.com:80",mac:"00:1A:79:B5:35:53"},
+          {name:"Ghaouti2",url:"http://ghaouti1.com:80",mac:"00:1A:79:B5:35:53"},
+          {name:"Ghaouti3",url:"http://ghaouti1.com:80",mac:"00:1A:79:B5:35:53"},
+          {name:"Ghaouti4",url:"http://ghaouti1.com:80",mac:"00:1A:79:B5:35:53"},
+          {name:"Ghaouti5",url:"http://ghaouti1.com:80",mac:"00:1A:79:B5:35:53"},
+          {name:"Ghaouti6",url:"http://ghaouti1.com:80",mac:"00:1A:79:B5:35:53"},
+          {name:"Ghaouti7",url:"http://ghaouti1.com:80",mac:"00:1A:79:B5:35:53"},
+          {name:"Ghaouti8",url:"http://ghaouti1.com:80",mac:"00:1A:79:B5:35:53"},
+          {name:"Ghaouti9",url:"http://ghaouti1.com:80",mac:"00:1A:79:B5:35:53"},
+          {name:"Ghaouti10",url:"http://ghaouti1.com:80",mac:"00:1A:79:B5:35:53"},
+          {name:"Ghaouti11",url:"http://ghaouti1.com:80",mac:"00:1A:79:B5:35:53"},
+          {name:"Ghaouti12",url:"http://ghaouti1.com:80",mac:"00:1A:79:B5:35:53"},
+          {name:"Ghaouti13",url:"http://ghaouti1.com:80",mac:"00:1A:79:B5:35:53"},
+          {name:"Ghaouti14",url:"http://ghaouti1.com:80",mac:"00:1A:79:B5:35:53"},
+          {name:"Ghaouti15",url:"http://ghaouti1.com:80",mac:"00:1A:79:B5:35:53"},
+          {name:"Ghaouti16",url:"http://ghaouti1.com:80",mac:"00:1A:79:B5:35:53"},
+          {name:"Ghaouti17",url:"http://ghaouti1.com:80",mac:"00:1A:79:B5:35:53"},
+          {name:"Ghaouti18",url:"http://ghaouti1.com:80",mac:"00:1A:79:B5:35:53"},
+        ];
+        var btn = document.getElementById('presets-btn');
+        var panel = document.getElementById('presets-panel');
+        var list = document.getElementById('presets-list');
+        presets.forEach(function(p){
+          var b = document.createElement('button');
+          b.innerHTML = '<div class="pp-name">'+p.name+'</div><div class="pp-url">'+p.url+'</div><div class="pp-mac">'+p.mac+'</div>';
+          b.addEventListener('click', function(){
+            var nativeInput = document.querySelector('input[placeholder*="portal" i], input[placeholder*="url" i], input[data-placeholder*="Portal" i]');
+            if (nativeInput) nativeInput.value = p.url;
+            var macInput = document.querySelector('input[placeholder*="mac" i], input[data-placeholder*="MAC" i]');
+            if (macInput) macInput.value = p.mac;
+            panel.classList.remove('show');
+            /* Try to open add-source dialog */
+            var addBtn = document.querySelector('[mattooltip="Add source"], button:has(svg), button.mat-fab, button:has(span.mat-icon)');
+            if (addBtn) addBtn.click();
+          });
+          list.appendChild(b);
+        });
+        btn.addEventListener('click', function(){ panel.classList.toggle('show'); });
+        document.addEventListener('click', function(e){
+          if (!panel.contains(e.target) && e.target !== btn) panel.classList.remove('show');
+        });
+      })();
+    </script>
     <link rel="modulepreload" href="sidimad-dashboard.js"><link rel="modulepreload" href="sidimad-search-results.js"><link rel="modulepreload" href="sidimad-lodash.js"><link rel="modulepreload" href="sidimad-empty.js"><link rel="modulepreload" href="sidimad-search-form.js"><link rel="modulepreload" href="sidimad-settings-service.js"><link rel="modulepreload" href="sidimad-epg.js"><link rel="modulepreload" href="sidimad-whats-new.js"><link rel="modulepreload" href="sidimad-tauri.js"><link rel="modulepreload" href="sidimad-skeleton.js"><script src="polyfills.js" type="module"></script><script src="main.js" type="module"></script></body>
 </html>

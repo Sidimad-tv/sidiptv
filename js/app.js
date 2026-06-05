@@ -49,12 +49,6 @@ function isM3U8(u) { return /\.m3u8|m3u8/i.test(u); }
 function isMPD(u) { return /\.mpd|mpd\b|dash/i.test(u); }
 function pUrl(u) {
   if (!u || (u.indexOf('http:') !== 0 && u.indexOf('https:') !== 0)) return u;
-  if (location.protocol === 'https:' && u.indexOf('https:') !== 0) {
-    var s = state.activeSource !== null && state.sources[state.activeSource] ? state.sources[state.activeSource] : null;
-    var mac = s && s.mac ? s.mac : '';
-    var portal = s && s.portal ? s.portal : '';
-    return '/api/stream?url=' + encodeURIComponent(u) + '&mac=' + encodeURIComponent(mac) + '&portal=' + encodeURIComponent(portal);
-  }
   return u;
 }
 
@@ -540,6 +534,8 @@ async function playSeriesEpisode(el) {
 
 /* Player */
 async function playItem(item, mode, all) {
+  /* Clean up any existing player */
+  if (state.mpegtsPlayer) { try { state.mpegtsPlayer.destroy(); } catch(e) {} state.mpegtsPlayer = null; }
   if (state.hlsPlayer) { try { state.hlsPlayer.destroy(); } catch(e) {} state.hlsPlayer = null; }
   if (state.shakaPlayer) { try { state.shakaPlayer.destroy(); } catch(e) {} state.shakaPlayer = null; }
   vid.pause();
@@ -553,6 +549,7 @@ async function playItem(item, mode, all) {
 
   var cmd = item.url || item.cmd || '';
   var url = cmd;
+  var proxiedUrl = cmd;
 
   try {
     if (state.clientType === 'stalker' && cmd && state.client && state.client.createLink) {
@@ -560,6 +557,7 @@ async function playItem(item, mode, all) {
     }
   } catch(e) { console.log('[Play] createLink error:', e); }
 
+  /* Xtream/M3U: get stream URL */
   if (state.clientType === 'xtream' && item.stream_id) {
     try {
       if (mode === 'tv') url = await state.client.getLiveUrl(item.stream_id, item.extension || 'm3u8');
@@ -567,17 +565,37 @@ async function playItem(item, mode, all) {
     } catch(e) { console.log('[Play] xtream url error:', e); }
   }
 
-  var proxiedUrl = pUrl(url);
+  proxiedUrl = pUrl(url);
+
+  /* Clean up old players */
   state.hlsPlayer = null;
   if (state.shakaPlayer) { try { state.shakaPlayer.destroy(); } catch(e) {} state.shakaPlayer = null; }
 
+  /* Detect stream format */
   var isTsUrl = isTS(url) || isTS(proxiedUrl);
   var isHlsUrl = isM3U8(url) || isM3U8(proxiedUrl);
   var isDashUrl = isMPD(url) || isMPD(proxiedUrl);
+  var mpegtsOk = isTsUrl && typeof mpegts !== 'undefined' && mpegts.isSupported && mpegts.isSupported();
   var hlsOk = isHlsUrl && typeof Hls !== 'undefined' && Hls.isSupported && Hls.isSupported();
   var dashOk = isDashUrl && typeof shaka !== 'undefined' && shaka.Player && shaka.Player.isSupported();
 
-  /* HLS via hls.js (not in index.html auto-attach) */
+  /* Try mpegts.js for TS streams */
+  if (mpegtsOk) {
+    try {
+      state.mpegtsPlayer = mpegts.createPlayer({ type: 'mpegts', isLive: true, url: proxiedUrl });
+      state.mpegtsPlayer.attachMediaElement(vid);
+      state.mpegtsPlayer.load();
+      state.mpegtsPlayer.play().catch(function() {});
+      state.mpegtsPlayer.on(mpegts.Events.ERROR, function() {
+        ld.classList.add('hidden');
+        plyInfo.textContent = '⚠️ Stream error';
+      });
+      ld.classList.add('hidden');
+      return;
+    } catch(e) { console.log('[Play] mpegts error:', e); }
+  }
+
+  /* Try hls.js for HLS streams */
   if (hlsOk) {
     try {
       state.hlsPlayer = new Hls({ enableWorker: false });
@@ -591,7 +609,7 @@ async function playItem(item, mode, all) {
     } catch(e) { console.log('[Play] hls error:', e); }
   }
 
-  /* DASH via shaka-player (not in index.html auto-attach) */
+  /* Try shaka-player for DASH streams */
   if (dashOk) {
     try {
       state.shakaPlayer = new shaka.Player();
@@ -602,12 +620,13 @@ async function playItem(item, mode, all) {
     } catch(e) { console.log('[Play] shaka init error:', e); }
   }
 
-  /* TS or fallback: set src, auto-attach will try mpegts for any stream */
+  /* Native playback as final fallback */
   vid.src = proxiedUrl;
   vid.load();
   var playPromise = vid.play();
   if (playPromise) playPromise.catch(function(e) {
     console.log('[Play] native error:', e);
+    plyInfo.textContent = '⚠️ Playback failed';
   });
   setTimeout(function() { ld.classList.add('hidden'); }, 2000);
 }
@@ -615,7 +634,7 @@ async function playItem(item, mode, all) {
 function closePlayer() {
   ply.classList.remove('show');
   ply.classList.remove('ctrl-show');
-  if (vid._mpegtsPlayer) { try { vid._mpegtsPlayer.destroy(); } catch(e) {} vid._mpegtsPlayer = null; }
+  if (state.mpegtsPlayer) { try { state.mpegtsPlayer.destroy(); } catch(e) {} state.mpegtsPlayer = null; }
   if (state.hlsPlayer) { try { state.hlsPlayer.destroy(); } catch(e) {} state.hlsPlayer = null; }
   if (state.shakaPlayer) { try { state.shakaPlayer.destroy(); } catch(e) {} state.shakaPlayer = null; }
   vid.pause();

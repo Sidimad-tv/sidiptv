@@ -90,9 +90,7 @@ module.exports = async (req, res) => {
 
   const action = params.action || "";
   const urlBase = rawUrl.split("?")[0];
-  const url = /\.php$/i.test(urlBase)
-    ? rawUrl
-    : rawUrl.replace(/(\/?)(\?.*)?$/, (_m, _s, q) => "/portal.php" + (q || ""));
+  const url = rawUrl; // Use the rawUrl as-is; it is already resolved by the frontend
 
   const baseUrl = action === "create_link" ? url.split("?")[0] : url;
   const baseRaw = rawUrl.split("?")[0];

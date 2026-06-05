@@ -4,6 +4,55 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/>
   <title>sidiptv</title>
+  <script>
+    if (global === undefined) {
+      var global = window;
+    }
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/mpegts.js@1.7.3/dist/mpegts.js"></script>
+  <script>
+    (function() {
+      'use strict';
+      var attached = new WeakSet();
+      function isTsUrl(url) {
+        var d = typeof url === 'string' ? decodeURIComponent(url) : url;
+        return d && (d.includes('extension=ts') || d.includes('.ts?') || d.endsWith('.ts'));
+      }
+      function tryAttachMpegts(video) {
+        if (attached.has(video) || typeof mpegts === 'undefined') return false;
+        var src = video.currentSrc || video.src || (video.querySelector('source') || {}).src || '';
+        if (!isTsUrl(src)) return false;
+        attached.add(video);
+        try {
+          video.controls = true;
+          var player = mpegts.createPlayer({ type: 'mpegts', isLive: true, url: src });
+          player.attachMediaElement(video);
+          player.load();
+          player.play();
+          video._mpegtsPlayer = player;
+          return true;
+        } catch(e) {
+          console.warn('mpegts init:', e);
+          return false;
+        }
+      }
+      function initObserver() {
+        if (!document.body) { setTimeout(initObserver, 100); return; }
+        var observer = new MutationObserver(function() {
+          document.querySelectorAll('video#vid, video.video-js, video#video-player').forEach(function(v) {
+            if (!attached.has(v) && isTsUrl(v.src || v.currentSrc || '')) {
+              tryAttachMpegts(v);
+            }
+          });
+        });
+        observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['src'] });
+      }
+      initObserver();
+      document.addEventListener('play', function(e) {
+        if (e.target instanceof HTMLVideoElement) tryAttachMpegts(e.target);
+      }, true);
+    })();
+  </script>
   <style>
     *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
     :root{--bg:#0b0b12;--bg2:#12121c;--bg3:#1a1a28;--border:#22223a;--text:#c8c8e0;--text2:#7878a0;--text3:#555570;--accent:#00d4a0;--accent-rgb:0,212,160;--accent2:rgba(0,212,160,0.12);--accent3:#00b386;--red:#f55;--yellow:#f0b400;--radius:12px;--radius-sm:8px;--radius-xs:6px;--shadow:0 4px 20px rgba(0,0,0,0.4);--shadow-sm:0 2px 8px rgba(0,0,0,0.3);--font-size:14px;--transition:0.2s cubic-bezier(0.4,0,0.2,1)}
@@ -400,7 +449,6 @@
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/mpegts.js@1.7.3/dist/mpegts.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/hls.js@latest/dist/hls.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/shaka-player@4/dist/shaka-player.compiled.js"></script>
 <script src="js/xtream.js"></script>
@@ -698,42 +746,6 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
   /* Apply saved settings on load */
   var settings = loadSettings();
   applySettings(settings);
-})();
-
-/* ========== MPEGTS AUTO-ATTACH (from index.html) ========== */
-(function(){
-  var attached = new WeakSet();
-  function isTsUrl(url) {
-    var d = typeof url === 'string' ? decodeURIComponent(url) : (url || '');
-    return d && (d.includes('extension=ts') || d.includes('.ts?') || d.endsWith('.ts') || /\.ts\b/i.test(d));
-  }
-  function tryAttachMpegts(video) {
-    if (attached.has(video) || typeof mpegts === 'undefined') return false;
-    var src = video.currentSrc || video.src || '';
-    if (!isTsUrl(src)) return false;
-    attached.add(video);
-    try {
-      var player = mpegts.createPlayer({ type: 'mpegts', isLive: true, url: src });
-      player.attachMediaElement(video);
-      player.load();
-      player.play();
-      video._mpegtsPlayer = player;
-      return true;
-    } catch(e) { console.warn('mpegts auto:', e); return false; }
-  }
-  function initObserver() {
-    if (!document.body) { setTimeout(initObserver, 100); return; }
-    var observer = new MutationObserver(function() {
-      document.querySelectorAll('video#vid').forEach(function(v) {
-        if (!attached.has(v) && isTsUrl(v.src || v.currentSrc || '')) tryAttachMpegts(v);
-      });
-    });
-    observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['src'] });
-  }
-  initObserver();
-  document.addEventListener('play', function(e) {
-    if (e.target instanceof HTMLVideoElement) tryAttachMpegts(e.target);
-  }, true);
 })();
 
 /* ========== PROGRESS BAR TOOLTIP / HOVER ========== */

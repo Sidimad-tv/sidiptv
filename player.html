@@ -689,17 +689,13 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
   applySettings(settings);
 })();
 
-/* ========== EXACT auto-attach from index.html ========== */
+/* ========== MPEGTS auto-attach (always try, no URL filter) ========== */
 (function(){
   var attached = new WeakSet();
-  function isTsUrl(url) {
-    var d = typeof url === 'string' ? decodeURIComponent(url) : url;
-    return d && (d.includes('extension=ts') || d.includes('.ts?') || d.endsWith('.ts'));
-  }
   function tryAttachMpegts(video) {
     if (attached.has(video) || typeof mpegts === 'undefined') return false;
     var src = video.currentSrc || video.src || (video.querySelector('source') || {}).src || '';
-    if (!isTsUrl(src)) return false;
+    if (!src) return false;
     attached.add(video);
     try {
       video.controls = true;
@@ -718,7 +714,7 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
     if (!document.body) { setTimeout(initObserver, 100); return; }
     var observer = new MutationObserver(function() {
       document.querySelectorAll('video#vid').forEach(function(v) {
-        if (!attached.has(v) && isTsUrl(v.src || v.currentSrc || '')) {
+        if (!attached.has(v) && (v.src || v.currentSrc || '')) {
           tryAttachMpegts(v);
         }
       });

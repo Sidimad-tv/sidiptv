@@ -602,16 +602,13 @@ async function playItem(item, mode, all) {
     } catch(e) { console.log('[Play] shaka init error:', e); }
   }
 
-  /* TS or fallback: set src, let auto-attach from index.html handle mpegts */
+  /* TS or fallback: set src, auto-attach will try mpegts for any stream */
   vid.src = proxiedUrl;
   vid.load();
-  if (!isTsUrl) {
-    var playPromise = vid.play();
-    if (playPromise) playPromise.catch(function(e) {
-      console.log('[Play] native error:', e);
-      plyInfo.textContent = '⚠️ Playback failed';
-    });
-  }
+  var playPromise = vid.play();
+  if (playPromise) playPromise.catch(function(e) {
+    console.log('[Play] native error:', e);
+  });
   setTimeout(function() { ld.classList.add('hidden'); }, 2000);
 }
 

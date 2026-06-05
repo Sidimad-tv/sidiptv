@@ -27,31 +27,28 @@
         <script>
             // Remove Version section and EPG note from Settings panel
             (function() {
-                function cleanupSettings() {
-                    var container = document.querySelector('.settings-container');
-                    if (!container) return;
-                    var rows = container.querySelectorAll('.row');
-                    for (var i = 0; i < rows.length; i++) {
-                        var text = rows[i].textContent || '';
-                        // EPG note: contains github.com/4gray link
-                        if (text.includes('4gray') || text.includes('iptvnator')) {
-                            rows[i].style.display = 'none';
-                            continue;
+                function r() {
+                    var c = document.querySelector('.settings-container');
+                    if (!c) return;
+                    c.querySelectorAll('.row').forEach(function(row) {
+                        var t = row.textContent || '';
+                        // EPG row: has link to 4gray/iptvnator
+                        if (t.includes('4gray') || t.includes('iptvnator')) { row.style.display = 'none'; return; }
+                        // Version row: 2 columns, first has <p>, second has <br>
+                        var co = row.querySelectorAll(':scope > .column');
+                        if (co.length === 2 && co[0].querySelector('p') && co[1].querySelector('br')) {
+                            [row.previousElementSibling, row.nextElementSibling].forEach(function(s) {
+                                if (s && s.tagName === 'MAT-DIVIDER') s.style.display = 'none';
+                            });
+                            row.style.display = 'none';
                         }
-                        // Version row: first column has <p>, second column has <br>
-                        var cols = rows[i].querySelectorAll(':scope > .column');
-                        if (cols.length === 2 && cols[0].querySelector('p') && cols[1].querySelector('br')) {
-                            var prev = rows[i].previousElementSibling;
-                            if (prev && prev.tagName === 'MAT-DIVIDER') prev.style.display = 'none';
-                            var next = rows[i].nextElementSibling;
-                            if (next && next.tagName === 'MAT-DIVIDER') next.style.display = 'none';
-                            rows[i].style.display = 'none';
-                        }
-                    }
+                    });
                 }
-                var ro = new MutationObserver(function() { setTimeout(cleanupSettings, 100); });
-                ro.observe(document.body, { childList: true, subtree: true });
-                setTimeout(cleanupSettings, 500);
+                // Poll aggressively 20x over 10s
+                for (var i = 0; i < 20; i++) { setTimeout(r, i * 500); }
+                // Also observe
+                var mo = new MutationObserver(function() { setTimeout(r, 200); });
+                mo.observe(document.body, { childList: true, subtree: true });
             })();
         </script>
         <script src="https://cdn.jsdelivr.net/npm/mpegts.js@1.7.3/dist/mpegts.js"></script>

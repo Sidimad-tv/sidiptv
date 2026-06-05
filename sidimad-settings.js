@@ -1085,13 +1085,13 @@ var SettingsComponent = class _SettingsComponent {
         \u0275\u0275advance(11);
         \u0275\u0275conditional(ctx.settingsForm.value.remoteControl === true ? 141 : -1);
         \u0275\u0275advance(6);
-        \u0275\u0275textInterpolate1("\n            ", \u0275\u0275pipeBind1(148, 69, "SETTINGS.VERSION"), "\n            ");
+        \u0275\u0275textInterpolate1("\n            ", \u0275\u0275pipeBind1(148, 69, ""), "\n            ");
         \u0275\u0275advance(3);
-        \u0275\u0275textInterpolate(\u0275\u0275pipeBind1(151, 71, "SETTINGS.VERSION_DESCRIPTION"));
+        \u0275\u0275textInterpolate(\u0275\u0275pipeBind1(151, 71, ""));
         \u0275\u0275advance(5);
-        \u0275\u0275textInterpolate1("\n            ", ctx.version, " ");
+        \u0275\u0275textInterpolate1("\n            ", "", " ");
         \u0275\u0275advance(2);
-        \u0275\u0275textInterpolate1("\n            ", ctx.updateMessage, "\n          ");
+        \u0275\u0275textInterpolate1("\n            ", "", "\n          ");
         \u0275\u0275advance(8);
         \u0275\u0275textInterpolate1("\n            ", \u0275\u0275pipeBind1(166, 73, "SETTINGS.IMPORT_EXPORT_DATA"), "\n            ");
         \u0275\u0275advance(3);
@@ -1107,7 +1107,7 @@ var SettingsComponent = class _SettingsComponent {
         \u0275\u0275advance(7);
         \u0275\u0275textInterpolate1("\n              ", \u0275\u0275pipeBind1(198, 85, "SETTINGS.REMOVE_ALL_BUTTON"), "\n            ");
         \u0275\u0275advance(5);
-        \u0275\u0275conditional(ctx.isPwa ? 202 : -1);
+        \u0275\u0275conditional(-1);
         \u0275\u0275advance(9);
         \u0275\u0275textInterpolate1("\n          ", \u0275\u0275pipeBind1(212, 87, "SETTINGS.BACK_TO_HOME"), "\n        ");
         \u0275\u0275advance(3);
@@ -1460,17 +1460,6 @@ var SettingsComponent = class _SettingsComponent {
         <mat-divider />
         <div class="row">
           <div class="column">
-            {{ 'SETTINGS.VERSION' | translate }}
-            <p>{{ 'SETTINGS.VERSION_DESCRIPTION' | translate }}</p>
-          </div>
-          <div class="column">
-            {{ version }} <br />
-            {{ updateMessage }}
-          </div>
-        </div>
-        <mat-divider />
-        <div class="row">
-          <div class="column">
             {{ 'SETTINGS.IMPORT_EXPORT_DATA' | translate }}
             <p>
               {{ 'SETTINGS.IMPORT_EXPORT_DATA_DESCRIPTION' | translate }}
@@ -1521,15 +1510,6 @@ var SettingsComponent = class _SettingsComponent {
             </button>
           </div>
         </div>
-
-        @if (isPwa) {
-          <div class="row">
-            {{ 'SETTINGS.EPG_NOTE' | translate }}
-            &nbsp;<a href="https://github.com/4gray/iptvnator/releases">{{
-            'SETTINGS.EPG_NOTE_URL_TEXT' | translate
-          }}</a>
-        </div>
-      }
 
       <mat-divider />
       <div class="action-buttons" align="end">

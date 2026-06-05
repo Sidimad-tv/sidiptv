@@ -4172,7 +4172,7 @@ function HeaderComponent_Conditional_16_Template(rf, ctx) {
     \u0275\u0275advance(7);
     \u0275\u0275property("matMenuTriggerFor", filterPlaylistMenu_r10)("matTooltip", \u0275\u0275pipeBind1(19, 35, "HOME.FILTER_BY_TYPE"));
     \u0275\u0275advance(7);
-    \u0275\u0275conditional(ctx_r2.isElectron || ctx_r2.isTauri ? 25 : 26);
+    \u0275\u0275conditional(25);
     \u0275\u0275advance(6);
     \u0275\u0275textInterpolate1("\n                    ", \u0275\u0275pipeBind1(32, 37, "HOME.SORT_BY"), "\n                ");
     \u0275\u0275advance(3);

@@ -1,7 +1,7 @@
 {
-    "name": "S!d!m@D-Iptv",
-    "description": "S!d!m@D-Iptv - IPTV player with Stalker portal and Xtream Codes support",
-    "short_name": "S!d!m@D",
+    "name": "IPTVnator",
+    "description": "IPTVnator is a tool to watch and manage your IPTV playlists.",
+    "short_name": "IPTVnator",
     "theme_color": "#1b1c1c",
     "background_color": "#1b1c1c",
     "display": "standalone",

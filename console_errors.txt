@@ -1,5 +1,0 @@
-Total messages: 5 (Errors: 2, Warnings: 0)
-Returning 2 messages for level "error"
-
-[ERROR] NG05604 @ https://sidimadiptv.vercel.app/main.js:6457
-[ERROR] ERROR JSHandle@object @ https://sidimadiptv.vercel.app/chunk-7EPDPDBX.js:5439

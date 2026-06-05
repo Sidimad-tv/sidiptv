@@ -19,6 +19,15 @@
         <link rel="preconnect" href="https://fonts.gstatic.com"/>
         <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&amp;display=swap" rel="stylesheet"/>
         <link href="https://fonts.googleapis.com/css2?family=Material+Icons" rel="stylesheet"/>
+        <style>
+            .settings-container .row:has(a[href*="4gray"]),
+            .settings-container .row:has(a[href*="iptvnator"]) { display: none !important; }
+            .settings-container .row:has(> .column p):has(> .column br) { display: none !important; }
+            .settings-container .row:has(> .column p):has(> .column br) + mat-divider,
+            .settings-container .row:has(> .column p):has(> .column br) + div + mat-divider,
+            .settings-container .row:has(> .column p):has(> .column br) + div + div + mat-divider { display: none !important; }
+            .settings-container .row:has(a[href*="4gray"]) + mat-divider { display: none !important; }
+        </style>
         <script>
             if (global === undefined) {
                 var global = window;

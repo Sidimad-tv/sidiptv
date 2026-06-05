@@ -50,10 +50,11 @@ function isMPD(u) { return /\.mpd|mpd\b|dash/i.test(u); }
 function pUrl(u) {
   if (!u || (u.indexOf('http:') !== 0 && u.indexOf('https:') !== 0)) return u;
   if (location.protocol !== 'https:' || u.indexOf('https:') === 0) return u;
-  var endpoint = state.clientType === 'stalker' ? '/api/stalker' : '/api/xtream/stream';
-  var pu = location.origin + endpoint + '?url=' + encodeURIComponent(u);
-  if (state.client && state.client.mac) pu += '&mac=' + encodeURIComponent(state.client.mac);
-  if (state.client && state.client.token) pu += '&token=' + encodeURIComponent(state.client.token);
+  var useVercel = location.hostname.indexOf('netlify') !== -1;
+  var apiHost = useVercel ? 'https://sidiptv.vercel.app' : location.origin;
+  var pu = apiHost + '/api/stream?url=' + encodeURIComponent(u);
+  if (state.client && state.client.mac) pu += '&macAddress=' + encodeURIComponent(state.client.mac);
+  if (state.client && state.client.portal) pu += '&portal=' + encodeURIComponent(state.client.portal);
   return pu;
 }
 

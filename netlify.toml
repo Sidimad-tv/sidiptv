@@ -13,16 +13,6 @@
   status = 200
 
 [[redirects]]
-  from = "/api/stream"
-  to = "/.netlify/functions/stream"
-  status = 200
-
-[[redirects]]
-  from = "/api/xtream/stream"
-  to = "/.netlify/functions/stream"
-  status = 200
-
-[[redirects]]
   from = "/api/m3u/fetch"
   to = "/.netlify/functions/stalker"
   status = 200

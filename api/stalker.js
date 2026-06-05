@@ -135,20 +135,3 @@ module.exports = async (req, res) => {
     res.json({ payload: "", message: err.message, status: 502 });
   }
 };
-
-/* Netlify Lambda wrapper */
-const _stalkerExpress = module.exports;
-exports.handler = async (event) => {
-  const qs = new URL(event.path + "?" + (event.rawQueryString || ""), "http://localhost").searchParams;
-  const req = { method: event.httpMethod || "GET", query: Object.fromEntries(qs), headers: event.headers || {}, body: event.body || "" };
-  let statusCode = 200, headers = {}, body = "";
-  const res = {
-    status(code) { statusCode = code; return this; },
-    setHeader(k, v) { headers[k] = v; },
-    end(b) { body = b || ""; },
-    json(obj) { this.setHeader("Content-Type", "application/json"); this.end(JSON.stringify(obj)); },
-    send(b) { this.end(b); },
-  };
-  try { await _stalkerExpress(req, res); } catch(e) { statusCode = 500; body = e.message; }
-  return { statusCode, headers: { ...headers, "Access-Control-Allow-Origin": "*" }, body };
-};

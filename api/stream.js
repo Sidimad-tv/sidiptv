@@ -120,24 +120,3 @@ module.exports = async (req, res) => {
     }
   }
 };
-
-/* Netlify Lambda wrapper (buffered) */
-const _streamExpress = module.exports;
-exports.handler = async (event) => {
-  const qs = new URL(event.path + "?" + (event.rawQueryString || ""), "http://localhost").searchParams;
-  const req = { method: event.httpMethod || "GET", query: Object.fromEntries(qs), headers: event.headers || {}, body: event.body || "", url: event.path + "?" + (event.rawQueryString || "") };
-  let statusCode = 200, headers = {}, bodyChunks = [];
-  const res = {
-    _sent: false,
-    status(code) { statusCode = code; return this; },
-    setHeader(k, v) { headers[k] = v; },
-    writeHead(sc, hdrs) { statusCode = sc; if (hdrs) Object.assign(headers, hdrs); },
-    write(chunk) { if (chunk) bodyChunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk)); },
-    end(chunk) { if (chunk) bodyChunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk)); this._sent = true; },
-    send(b) { this.end(b); },
-    json(obj) { this.setHeader("Content-Type", "application/json"); this.end(JSON.stringify(obj)); },
-  };
-  try { await _streamExpress(req, res); } catch(e) { if (!res._sent) { statusCode = 500; bodyChunks = [Buffer.from(e.message)]; } }
-  const fullBody = Buffer.concat(bodyChunks);
-  return { statusCode, headers: { ...headers, "Access-Control-Allow-Origin": "*" }, body: fullBody.toString("base64"), isBase64Encoded: true };
-};

@@ -3,7 +3,9 @@ const https = require("https");
 
 const STB_UA = "Mozilla/5.0 (QtEmbedded; U; Linux; C) AppleWebKit/533.3 (KHTML, like Gecko) MAG200 stbapp ver: 2 rev: 250 Safari/533.3";
 
-function httpGet(urlStr, headers, timeoutMs) {
+function httpGet(urlStr, headers, timeoutMs, redirects) {
+  redirects = redirects || 0;
+  if (redirects > 5) return Promise.reject(new Error("Too many redirects"));
   return new Promise((resolve, reject) => {
     const u = new URL(urlStr);
     const mod = u.protocol === "https:" ? https : http;
@@ -12,6 +14,11 @@ function httpGet(urlStr, headers, timeoutMs) {
       path: u.pathname + u.search, method: "GET",
       headers: headers || {}, rejectUnauthorized: false, timeout: timeoutMs || 12000,
     }, (resp) => {
+      if ([301, 302, 303, 307, 308].includes(resp.statusCode) && resp.headers.location) {
+        resp.resume();
+        const nextUrl = new URL(resp.headers.location, urlStr).toString();
+        return httpGet(nextUrl, headers, timeoutMs, redirects + 1).then(resolve).catch(reject);
+      }
       const chunks = [];
       resp.on("data", c => chunks.push(c));
       resp.on("end", () => resolve({ status: resp.statusCode, headers: resp.headers, body: Buffer.concat(chunks) }));

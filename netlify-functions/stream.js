@@ -23,11 +23,14 @@ function httpGet(urlStr, headers, timeoutMs) {
 }
 
 exports.handler = async (event) => {
-  const qs = new URL(event.path + "?" + (event.rawQueryString || ""), "http://localhost").searchParams;
-  const targetUrl = qs.get("url");
+  const qParams = event.queryStringParameters || {};
+  if (event.rawQueryString && !qParams.url) {
+    try { const qs = new URLSearchParams(event.rawQueryString); qs.forEach((v,k) => { if (!qParams[k]) qParams[k]=v; }); } catch(e) {}
+  }
+  const targetUrl = qParams.url;
   if (!targetUrl) return { statusCode: 400, body: "Missing url", headers: { "Access-Control-Allow-Origin": "*" } };
-  const mac = qs.get("macAddress") || qs.get("mac") || "";
-  const portal = qs.get("portal") || "";
+  const mac = qParams.macAddress || qParams.mac || "";
+  const portal = qParams.portal || "";
 
   try {
     const u = new URL(targetUrl);

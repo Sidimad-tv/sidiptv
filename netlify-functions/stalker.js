@@ -1,10 +1,17 @@
 const expressHandler = require("../api/stalker.js");
 
 function buildReq(event) {
-  const qs = new URL(event.path + "?" + (event.rawQueryString || ""), "http://localhost").searchParams;
+  const query = event.queryStringParameters || {};
+  /* Also parse from rawQueryString for URLs with special chars */
+  if (event.rawQueryString) {
+    try {
+      const qs = new URLSearchParams(event.rawQueryString);
+      qs.forEach((v, k) => { if (!query[k]) query[k] = v; });
+    } catch(e) {}
+  }
   return {
     method: event.httpMethod || "GET",
-    query: Object.fromEntries(qs),
+    query,
     headers: event.headers || {},
     body: event.body || "",
   };

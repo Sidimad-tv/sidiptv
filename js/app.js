@@ -540,8 +540,6 @@ async function playSeriesEpisode(el) {
 
 /* Player */
 async function playItem(item, mode, all) {
-  /* Clean up any existing player */
-  if (state.mpegtsPlayer) { try { state.mpegtsPlayer.destroy(); } catch(e) {} state.mpegtsPlayer = null; }
   if (state.hlsPlayer) { try { state.hlsPlayer.destroy(); } catch(e) {} state.hlsPlayer = null; }
   if (state.shakaPlayer) { try { state.shakaPlayer.destroy(); } catch(e) {} state.shakaPlayer = null; }
   vid.pause();
@@ -555,7 +553,6 @@ async function playItem(item, mode, all) {
 
   var cmd = item.url || item.cmd || '';
   var url = cmd;
-  var proxiedUrl = cmd;
 
   try {
     if (state.clientType === 'stalker' && cmd && state.client && state.client.createLink) {
@@ -563,7 +560,6 @@ async function playItem(item, mode, all) {
     }
   } catch(e) { console.log('[Play] createLink error:', e); }
 
-  /* Xtream/M3U: get stream URL */
   if (state.clientType === 'xtream' && item.stream_id) {
     try {
       if (mode === 'tv') url = await state.client.getLiveUrl(item.stream_id, item.extension || 'm3u8');
@@ -571,37 +567,17 @@ async function playItem(item, mode, all) {
     } catch(e) { console.log('[Play] xtream url error:', e); }
   }
 
-  proxiedUrl = pUrl(url);
-
-  /* Clean up old players */
+  var proxiedUrl = pUrl(url);
   state.hlsPlayer = null;
   if (state.shakaPlayer) { try { state.shakaPlayer.destroy(); } catch(e) {} state.shakaPlayer = null; }
 
-  /* Detect stream format */
   var isTsUrl = isTS(url) || isTS(proxiedUrl);
   var isHlsUrl = isM3U8(url) || isM3U8(proxiedUrl);
   var isDashUrl = isMPD(url) || isMPD(proxiedUrl);
-  var mpegtsOk = isTsUrl && typeof mpegts !== 'undefined' && mpegts.isSupported && mpegts.isSupported();
   var hlsOk = isHlsUrl && typeof Hls !== 'undefined' && Hls.isSupported && Hls.isSupported();
   var dashOk = isDashUrl && typeof shaka !== 'undefined' && shaka.Player && shaka.Player.isSupported();
 
-  /* Try mpegts.js for TS streams */
-  if (mpegtsOk) {
-    try {
-      state.mpegtsPlayer = mpegts.createPlayer({ type: 'mpegts', isLive: true, url: proxiedUrl });
-      state.mpegtsPlayer.attachMediaElement(vid);
-      state.mpegtsPlayer.load();
-      state.mpegtsPlayer.play().catch(function() {});
-      state.mpegtsPlayer.on(mpegts.Events.ERROR, function() {
-        ld.classList.add('hidden');
-        plyInfo.textContent = '⚠️ Stream error';
-      });
-      ld.classList.add('hidden');
-      return;
-    } catch(e) { console.log('[Play] mpegts error:', e); }
-  }
-
-  /* Try hls.js for HLS streams */
+  /* HLS via hls.js (not in index.html auto-attach) */
   if (hlsOk) {
     try {
       state.hlsPlayer = new Hls({ enableWorker: false });
@@ -615,7 +591,7 @@ async function playItem(item, mode, all) {
     } catch(e) { console.log('[Play] hls error:', e); }
   }
 
-  /* Try shaka-player for DASH streams */
+  /* DASH via shaka-player (not in index.html auto-attach) */
   if (dashOk) {
     try {
       state.shakaPlayer = new shaka.Player();
@@ -626,21 +602,23 @@ async function playItem(item, mode, all) {
     } catch(e) { console.log('[Play] shaka init error:', e); }
   }
 
-  /* Native playback as final fallback */
+  /* TS or fallback: set src, let auto-attach from index.html handle mpegts */
   vid.src = proxiedUrl;
   vid.load();
-  var playPromise = vid.play();
-  if (playPromise) playPromise.catch(function(e) {
-    console.log('[Play] native error:', e);
-    plyInfo.textContent = '⚠️ Playback failed';
-  });
+  if (!isTsUrl) {
+    var playPromise = vid.play();
+    if (playPromise) playPromise.catch(function(e) {
+      console.log('[Play] native error:', e);
+      plyInfo.textContent = '⚠️ Playback failed';
+    });
+  }
   setTimeout(function() { ld.classList.add('hidden'); }, 2000);
 }
 
 function closePlayer() {
   ply.classList.remove('show');
   ply.classList.remove('ctrl-show');
-  if (state.mpegtsPlayer) { try { state.mpegtsPlayer.destroy(); } catch(e) {} state.mpegtsPlayer = null; }
+  if (vid._mpegtsPlayer) { try { vid._mpegtsPlayer.destroy(); } catch(e) {} vid._mpegtsPlayer = null; }
   if (state.hlsPlayer) { try { state.hlsPlayer.destroy(); } catch(e) {} state.hlsPlayer = null; }
   if (state.shakaPlayer) { try { state.shakaPlayer.destroy(); } catch(e) {} state.shakaPlayer = null; }
   vid.pause();

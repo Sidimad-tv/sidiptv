@@ -1,5 +1,8 @@
 {
   "name": "sidiptv",
   "version": "1.0.0",
-  "private": true
+  "private": true,
+  "dependencies": {
+    "playwright": "^1.60.0"
+  }
 }

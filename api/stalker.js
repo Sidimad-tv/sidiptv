@@ -63,6 +63,9 @@ async function warmupSession(portalUrl, mac) {
 function cleanBody(body) {
   let s = body.trim();
   if (s.startsWith("//")) { const nl = s.indexOf("\n"); if (nl > 0) s = s.slice(nl + 1).trim(); }
+  /* Handle JsHttpRequest callback: JsHttpRequest_<id>_xml({...}) */
+  const jrMatch = s.match(/^JsHttpRequest_\d+_xml\(([\s\S]*)\);?\s*$/);
+  if (jrMatch) { try { s = JSON.parse(jrMatch[1]); return s; } catch (_) {} }
   if (s.startsWith("<?xml")) { const m = s.match(/<response[^>]*>([\s\S]*?)<\/response>/i); if (m) s = m[1].trim(); }
   if (s.startsWith("{") || s.startsWith("[")) { try { s = JSON.parse(s); } catch (_) {} }
   return s;

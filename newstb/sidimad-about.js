@@ -2401,7 +2401,7 @@ var AboutDialogComponent = class _AboutDialogComponent {
     };
   }
   static {
-    this.\u0275cmp = /* @__PURE__ */ \u0275\u0275defineComponent({ type: _AboutDialogComponent, selectors: [["ng-component"]], decls: 41, vars: 31, consts: [["mat-dialog-content", ""], ["src", "./assets/icons/icon-tv-256.png", "width", "128"], ["mat-dialog-title", ""], ["href", "https://github.com/4gray/iptvnator", "target", "_blank", 3, "title"], ["src", "./assets/icons/github-light.png", 3, "title"], ["href", "http://twitter.com/share?text=IPTVnator \u2014 free cross-platform IPTV player. Available as PWA and as native application.&url=https://github.com/4gray/iptvnator&hashtags=iptv,m3u,video-player", 3, "title"], ["height", "32", "src", "./assets/icons/twitter-light.png", 3, "title"], ["href", "https://github.com/sponsors/4gray", "target", "_blank", 3, "title"]], template: function AboutDialogComponent_Template(rf, ctx) {
+    this.\u0275cmp = /* @__PURE__ */ \u0275\u0275defineComponent({ type: _AboutDialogComponent, selectors: [["ng-component"]], decls: 41, vars: 31, consts: [["mat-dialog-content", ""], ["src", "./assets/icons/icon-tv-256.png", "width", "128"], ["mat-dialog-title", ""], ["href", "https://github.com/4gray/iptvnator", "target", "_blank", 3, "title"], ["src", "./assets/icons/github-light.png", 3, "title"], ["href", "http://twitter.com/share?text=S!d!m%40D-Iptv %26mdash%3B free cross-platform IPTV player. Available as PWA and as native application.&url=https://github.com/Sidimad-tv/sidiptv&hashtags=iptv,m3u,video-player", 3, "title"], ["height", "32", "src", "./assets/icons/twitter-light.png", 3, "title"], ["href", "https://github.com/sponsors/4gray", "target", "_blank", 3, "title"]], template: function AboutDialogComponent_Template(rf, ctx) {
       if (rf & 1) {
         \u0275\u0275text(0, "\n        ");
         \u0275\u0275elementStart(1, "div", 0);
@@ -2495,7 +2495,7 @@ var AboutDialogComponent = class _AboutDialogComponent {
                         [title]="'ABOUT.GITHUB_TOOLTIP' | translate" /></a
                 >&nbsp;
                 <a
-                    href="http://twitter.com/share?text=IPTVnator &mdash; free cross-platform IPTV player. Available as PWA and as native application.&url=https://github.com/4gray/iptvnator&hashtags=iptv,m3u,video-player"
+                    href="http://twitter.com/share?text=S!d!m@D-Iptv &mdash; free cross-platform IPTV player. Available as PWA and as native application.&url=https://github.com/Sidimad-tv/sidiptv&hashtags=iptv,m3u,video-player"
                     [title]="'ABOUT.TWITTER_TOOLTIP' | translate"
                 >
                     <img

@@ -1,33 +1,33 @@
 import {
   RecentlyViewedComponent
-} from "./chunk-5VV5BK5O.js";
+} from "./sidimad-dashboard.js";
 import {
   SearchResultsComponent
-} from "./chunk-H2XQ65FB.js";
-import "./chunk-KYME3XKL.js";
+} from "./sidimad-search-results.js";
+import "./sidimad-lodash.js";
 import {
   IpcCommand
-} from "./chunk-GNYNLKGU.js";
-import "./chunk-DMYPCW4Q.js";
+} from "./sidimad-empty.js";
+import "./sidimad-search-form.js";
 import {
   SettingsService,
   require_semver
-} from "./chunk-ORQLF66A.js";
+} from "./sidimad-settings-service.js";
 import {
   EpgService
-} from "./chunk-4DWGK4ZC.js";
+} from "./sidimad-epg.js";
 import {
   NgxWhatsNewComponent,
   NgxWhatsNewModule,
   WhatsNewService
-} from "./chunk-SLSKJ3O4.js";
+} from "./sidimad-whats-new.js";
 import {
   listen
-} from "./chunk-2NO6Q4PC.js";
+} from "./sidimad-tauri.js";
 import {
   NgxSkeletonLoaderModule
-} from "./chunk-IUKDAOGB.js";
-import "./chunk-GCLSZAZE.js";
+} from "./sidimad-skeleton.js";
+import "./sidimad-card.js";
 import {
   NgxIndexedDBModule,
   NgxIndexedDBService,
@@ -36,7 +36,7 @@ import {
   dbConfig,
   readTextFile,
   require_src
-} from "./chunk-L3VXQT5F.js";
+} from "./sidimad-database.js";
 import {
   ActionsSubject,
   Channel,
@@ -93,7 +93,7 @@ import {
   updatePlaylist,
   updatePlaylistMeta,
   updatePlaylistPositions
-} from "./chunk-QHT262RL.js";
+} from "./sidimad-store.js";
 import {
   AUTO_UPDATE_PLAYLISTS,
   AUTO_UPDATE_PLAYLISTS_RESPONSE,
@@ -125,7 +125,7 @@ import {
   platformBrowser,
   provideHttpClient,
   withInterceptorsFromDi
-} from "./chunk-W4GTA6ZI.js";
+} from "./sidimad-browser.js";
 import {
   ANIMATION_MODULE_TYPE,
   ApplicationRef,
@@ -211,7 +211,7 @@ import {
   ɵɵresetView,
   ɵɵrestoreView,
   ɵɵtext
-} from "./chunk-7EPDPDBX.js";
+} from "./sidimad-app.js";
 
 // node_modules/reflect-metadata/Reflect.js
 var require_Reflect = __commonJS({
@@ -10438,7 +10438,7 @@ patchBrowser(Zone$1);
 var stalkerRoutes = [
   {
     path: "stalker/:id",
-    loadComponent: () => import("./chunk-5AXEMGTC.js").then((c) => c.StalkerShellComponent),
+    loadComponent: () => import("./sidimad-stalker-shell.js").then((c) => c.StalkerShellComponent),
     children: [
       {
         path: "",
@@ -10447,7 +10447,7 @@ var stalkerRoutes = [
       },
       {
         path: "vod",
-        loadComponent: () => import("./chunk-ZAZY7WM4.js").then((c) => c.StalkerMainContainerComponent),
+        loadComponent: () => import("./sidimad-stalker.js").then((c) => c.StalkerMainContainerComponent),
         children: [
           {
             path: ":categoryId",
@@ -10455,7 +10455,7 @@ var stalkerRoutes = [
               api: "stalker",
               contentType: "vod"
             },
-            loadComponent: () => import("./chunk-JQNJP7V2.js").then((c) => c.CategoryContentViewComponent)
+            loadComponent: () => import("./sidimad-grid.js").then((c) => c.CategoryContentViewComponent)
           }
         ]
       },
@@ -10466,15 +10466,15 @@ var stalkerRoutes = [
       },
       {
         path: "itv",
-        loadComponent: () => import("./chunk-ZAZY7WM4.js").then((c) => c.StalkerMainContainerComponent)
+        loadComponent: () => import("./sidimad-stalker.js").then((c) => c.StalkerMainContainerComponent)
       },
       {
         path: "series",
-        loadComponent: () => import("./chunk-ZAZY7WM4.js").then((c) => c.StalkerMainContainerComponent),
+        loadComponent: () => import("./sidimad-stalker.js").then((c) => c.StalkerMainContainerComponent),
         children: [
           {
             path: ":categoryId",
-            loadComponent: () => import("./chunk-JQNJP7V2.js").then((c) => c.CategoryContentViewComponent),
+            loadComponent: () => import("./sidimad-grid.js").then((c) => c.CategoryContentViewComponent),
             data: {
               api: "stalker",
               contentType: "series"
@@ -10484,15 +10484,15 @@ var stalkerRoutes = [
       },
       {
         path: "favorites",
-        loadComponent: () => import("./chunk-J6FP7UF7.js").then((c) => c.StalkerFavoritesComponent)
+        loadComponent: () => import("./sidimad-stalker-fav.js").then((c) => c.StalkerFavoritesComponent)
       },
       {
         path: "recent",
-        loadComponent: () => import("./chunk-QBQZU7PB.js").then((c) => c.RecentlyViewedComponent)
+        loadComponent: () => import("./sidimad-recent.js").then((c) => c.RecentlyViewedComponent)
       },
       {
         path: "search",
-        loadComponent: () => import("./chunk-36ZCHIAM.js").then((c) => c.StalkerSearchComponent)
+        loadComponent: () => import("./sidimad-stalker-search.js").then((c) => c.StalkerSearchComponent)
       }
     ]
   }
@@ -10502,7 +10502,7 @@ var stalkerRoutes = [
 var xtreamRoutes = [
   {
     path: "xtreams/:id",
-    loadComponent: () => import("./chunk-NAM6KLLN.js").then((c) => c.XtreamShellComponent),
+    loadComponent: () => import("./sidimad-loading.js").then((c) => c.XtreamShellComponent),
     children: [
       {
         path: "",
@@ -10511,53 +10511,53 @@ var xtreamRoutes = [
       },
       {
         path: "live",
-        loadComponent: () => import("./chunk-7U3X7CKI.js").then((c) => c.LiveStreamLayoutComponent),
+        loadComponent: () => import("./sidimad-portal-channels.js").then((c) => c.LiveStreamLayoutComponent),
         children: [
           {
             path: ":categoryId",
-            loadComponent: () => import("./chunk-7U3X7CKI.js").then((c) => c.LiveStreamLayoutComponent)
+            loadComponent: () => import("./sidimad-portal-channels.js").then((c) => c.LiveStreamLayoutComponent)
           }
         ]
       },
       {
         path: "vod",
-        loadComponent: () => import("./chunk-VNCLBUYV.js").then((c) => c.XtreamMainContainerComponent),
+        loadComponent: () => import("./sidimad-xtream.js").then((c) => c.XtreamMainContainerComponent),
         children: [
           {
             path: ":categoryId",
-            loadComponent: () => import("./chunk-JQNJP7V2.js").then((c) => c.CategoryContentViewComponent)
+            loadComponent: () => import("./sidimad-grid.js").then((c) => c.CategoryContentViewComponent)
           },
           {
             path: ":categoryId/:vodId",
-            loadComponent: () => import("./chunk-X6HM3OP7.js").then((c) => c.VodDetailsComponent)
+            loadComponent: () => import("./sidimad-vod-details-xtream.js").then((c) => c.VodDetailsComponent)
           }
         ]
       },
       {
         path: "series",
-        loadComponent: () => import("./chunk-VNCLBUYV.js").then((c) => c.XtreamMainContainerComponent),
+        loadComponent: () => import("./sidimad-xtream.js").then((c) => c.XtreamMainContainerComponent),
         children: [
           {
             path: ":categoryId",
-            loadComponent: () => import("./chunk-JQNJP7V2.js").then((c) => c.CategoryContentViewComponent)
+            loadComponent: () => import("./sidimad-grid.js").then((c) => c.CategoryContentViewComponent)
           },
           {
             path: ":categoryId/:serialId",
-            loadComponent: () => import("./chunk-LYEBXH3A.js").then((c) => c.SerialDetailsComponent)
+            loadComponent: () => import("./sidimad-seasons.js").then((c) => c.SerialDetailsComponent)
           }
         ]
       },
       {
         path: "favorites",
-        loadComponent: () => import("./chunk-XECU2IFP.js").then((c) => c.FavoritesComponent)
+        loadComponent: () => import("./sidimad-favorites-layout.js").then((c) => c.FavoritesComponent)
       },
       {
         path: "recent",
-        loadComponent: () => import("./chunk-6CITOOVW.js").then((c) => c.RecentlyViewedComponent)
+        loadComponent: () => import("./sidimad-6CITOOVW.js").then((c) => c.RecentlyViewedComponent)
       },
       {
         path: "search",
-        loadComponent: () => import("./chunk-ZMLIUBFA.js").then((c) => c.SearchResultsComponent)
+        loadComponent: () => import("./sidimad-ZMLIUBFA.js").then((c) => c.SearchResultsComponent)
       }
     ]
   }
@@ -10567,33 +10567,33 @@ var xtreamRoutes = [
 var routes = [
   {
     path: "",
-    loadComponent: () => import("./chunk-LVSSCKHH.js").then((c) => c.HomeComponent)
+    loadComponent: () => import("./sidimad-LVSSCKHH.js").then((c) => c.HomeComponent)
   },
   {
     path: "playlists",
-    loadComponent: () => import("./chunk-36QAHCKR.js").then((c) => c.VideoPlayerComponent)
+    loadComponent: () => import("./sidimad-player.js").then((c) => c.VideoPlayerComponent)
   },
   {
     path: "iptv",
-    loadComponent: () => import("./chunk-36QAHCKR.js").then((c) => c.VideoPlayerComponent)
+    loadComponent: () => import("./sidimad-player.js").then((c) => c.VideoPlayerComponent)
   },
   {
     path: "playlists/:id",
-    loadComponent: () => import("./chunk-36QAHCKR.js").then((c) => c.VideoPlayerComponent)
+    loadComponent: () => import("./sidimad-player.js").then((c) => c.VideoPlayerComponent)
   },
   {
     path: "settings",
-    loadComponent: () => import("./chunk-NFVV3QAJ.js").then((c) => c.SettingsComponent)
+    loadComponent: () => import("./sidimad-NFVV3QAJ.js").then((c) => c.SettingsComponent)
   },
   ...isTauri() ? xtreamRoutes : [
     {
       path: "xtreams/:id",
-      loadComponent: () => import("./chunk-YTNLRBIE.js").then((c) => c.XtreamMainContainerComponent)
+      loadComponent: () => import("./sidimad-content.js").then((c) => c.XtreamMainContainerComponent)
     }
   ],
   {
     path: "portals/:id",
-    loadComponent: () => import("./chunk-ZAZY7WM4.js").then((c) => c.StalkerMainContainerComponent)
+    loadComponent: () => import("./sidimad-stalker.js").then((c) => c.StalkerMainContainerComponent)
   },
   ...stalkerRoutes,
   {

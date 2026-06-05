@@ -4319,7 +4319,7 @@ var SortOrder;
   SortOrder2["ASC"] = "asc";
   SortOrder2["DESC"] = "desc";
 })(SortOrder || (SortOrder = {}));
-var SORT_OPTIONS_STORAGE_KEY = "iptvnator-sort-options";
+var SORT_OPTIONS_STORAGE_KEY = "sidiptv-sort-options";
 var SortService = class _SortService {
   constructor() {
     this.sortOptions = new BehaviorSubject(this.getSavedSortOptions());

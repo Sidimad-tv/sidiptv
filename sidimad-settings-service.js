@@ -1966,7 +1966,7 @@ var SettingsService = class _SettingsService {
    * Returns the version of the released app
    */
   getAppVersion() {
-    return this.http.get("https://api.github.com/repos/4gray/iptvnator/releases").pipe(map((response) => response.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0]), map((response) => response.name), catchError((err) => {
+    return this.http.get("https://api.github.com/repos/Sidimad-tv/sidiptv/releases").pipe(map((response) => response.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0]), map((response) => response.name), catchError((err) => {
       console.error(err);
       throw new Error(err);
     }));

@@ -30992,7 +30992,7 @@ var ExternalPlayerInfoDialogComponent = class _ExternalPlayerInfoDialogComponent
         \u0275\u0275text(17, "\n                    See\n                    ");
         \u0275\u0275elementStart(18, "a", 4);
         \u0275\u0275listener("click", function ExternalPlayerInfoDialogComponent_Template_a_click_18_listener() {
-          return ctx.openUrl("https://github.com/4gray/iptvnator/wiki/What-is-mpv-video-player-and-how-to-install-it-on-different-operating-systems%3F");
+          return ctx.openUrl("https://github.com/Sidimad-tv/sidiptv/wiki");
         });
         \u0275\u0275text(19, "installation instructions");
         \u0275\u0275elementEnd();
@@ -31066,7 +31066,7 @@ var ExternalPlayerInfoDialogComponent = class _ExternalPlayerInfoDialogComponent
                         style="cursor: pointer"
                         (click)="
                             openUrl(
-                                'https://github.com/4gray/iptvnator/wiki/What-is-mpv-video-player-and-how-to-install-it-on-different-operating-systems%3F'
+                                'https://github.com/Sidimad-tv/sidiptv/wiki'
                             )
                         "
                         >installation instructions</a

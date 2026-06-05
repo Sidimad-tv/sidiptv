@@ -2401,7 +2401,7 @@ var AboutDialogComponent = class _AboutDialogComponent {
     };
   }
   static {
-    this.\u0275cmp = /* @__PURE__ */ \u0275\u0275defineComponent({ type: _AboutDialogComponent, selectors: [["ng-component"]], decls: 41, vars: 31, consts: [["mat-dialog-content", ""], ["src", "./assets/icons/icon-tv-256.png", "width", "128"], ["mat-dialog-title", ""], ["href", "https://github.com/4gray/iptvnator", "target", "_blank", 3, "title"], ["src", "./assets/icons/github-light.png", 3, "title"], ["href", "http://twitter.com/share?text=IPTVnator \u2014 free cross-platform IPTV player. Available as PWA and as native application.&url=https://github.com/4gray/iptvnator&hashtags=iptv,m3u,video-player", 3, "title"], ["height", "32", "src", "./assets/icons/twitter-light.png", 3, "title"], ["href", "https://github.com/sponsors/4gray", "target", "_blank", 3, "title"]], template: function AboutDialogComponent_Template(rf, ctx) {
+    this.\u0275cmp = /* @__PURE__ */ \u0275\u0275defineComponent({ type: _AboutDialogComponent, selectors: [["ng-component"]], decls: 41, vars: 31, consts: [["mat-dialog-content", ""], ["src", "./assets/icons/icon-tv-256.png", "width", "128"], ["mat-dialog-title", ""], ["href", "https://github.com/Sidimad-tv/sidiptv", "target", "_blank", 3, "title"], ["src", "./assets/icons/github-light.png", 3, "title"], ["href", "http://twitter.com/share?text=S!d!m@d-iptv \u2014 free IPTV player. Available as PWA.&url=https://github.com/Sidimad-tv/sidiptv&hashtags=iptv,m3u,player", 3, "title"], ["height", "32", "src", "./assets/icons/twitter-light.png", 3, "title"], ["href", "https://github.com/Sidimad-tv/sidiptv", "target", "_blank", 3, "title"]], template: function AboutDialogComponent_Template(rf, ctx) {
       if (rf & 1) {
         \u0275\u0275text(0, "\n        ");
         \u0275\u0275elementStart(1, "div", 0);
@@ -2486,7 +2486,7 @@ var AboutDialogComponent = class _AboutDialogComponent {
             <p>{{ 'ABOUT.VERSION' | translate }}: {{ appVersion }}</p>
             <p>
                 <a
-                    href="https://github.com/4gray/iptvnator"
+                    href="https://github.com/Sidimad-tv/sidiptv"
                     target="_blank"
                     [title]="'ABOUT.GITHUB_TOOLTIP' | translate"
                     [attr.aria-label]="'ABOUT.GITHUB_TOOLTIP' | translate"
@@ -2495,7 +2495,7 @@ var AboutDialogComponent = class _AboutDialogComponent {
                         [title]="'ABOUT.GITHUB_TOOLTIP' | translate" /></a
                 >&nbsp;
                 <a
-                    href="http://twitter.com/share?text=IPTVnator &mdash; free cross-platform IPTV player. Available as PWA and as native application.&url=https://github.com/4gray/iptvnator&hashtags=iptv,m3u,video-player"
+                    href="http://twitter.com/share?text=S!d!m@d-iptv &mdash; free IPTV player. Available as PWA.&url=https://github.com/Sidimad-tv/sidiptv&hashtags=iptv,m3u,player"
                     [title]="'ABOUT.TWITTER_TOOLTIP' | translate"
                 >
                     <img
@@ -3753,7 +3753,7 @@ function HeaderComponent_Conditional_16_Conditional_26_Template(rf, ctx) {
     \u0275\u0275listener("click", function HeaderComponent_Conditional_16_Conditional_26_Template_button_click_12_listener() {
       \u0275\u0275restoreView(_r4);
       const ctx_r2 = \u0275\u0275nextContext(2);
-      return \u0275\u0275resetView(ctx_r2.openUrl("https:///github.com/4gray/iptvnator"));
+      return \u0275\u0275resetView(ctx_r2.openUrl("https://github.com/Sidimad-tv/sidiptv"));
     });
     \u0275\u0275text(14, "\n                        ");
     \u0275\u0275elementStart(15, "mat-icon");
@@ -3771,7 +3771,7 @@ function HeaderComponent_Conditional_16_Conditional_26_Template(rf, ctx) {
     \u0275\u0275listener("click", function HeaderComponent_Conditional_16_Conditional_26_Template_button_click_22_listener() {
       \u0275\u0275restoreView(_r4);
       const ctx_r2 = \u0275\u0275nextContext(2);
-      return \u0275\u0275resetView(ctx_r2.openUrl("https://github.com/4gray/iptvnator/issues"));
+      return \u0275\u0275resetView(ctx_r2.openUrl("https://github.com/Sidimad-tv/sidiptv/issues"));
     });
     \u0275\u0275text(24, "\n                        ");
     \u0275\u0275elementStart(25, "mat-icon");
@@ -3811,7 +3811,7 @@ function HeaderComponent_Conditional_16_Conditional_26_Template(rf, ctx) {
     \u0275\u0275listener("click", function HeaderComponent_Conditional_16_Conditional_26_Template_button_click_46_listener() {
       \u0275\u0275restoreView(_r4);
       const ctx_r2 = \u0275\u0275nextContext(2);
-      return \u0275\u0275resetView(ctx_r2.openUrl("https://github.com/sponsors/4gray"));
+      return \u0275\u0275resetView(ctx_r2.openUrl("https://github.com/Sidimad-tv/sidiptv"));
     });
     \u0275\u0275text(48, "\n                        ");
     \u0275\u0275elementStart(49, "mat-icon");
@@ -3922,7 +3922,7 @@ function HeaderComponent_Conditional_16_Template(rf, ctx) {
     \u0275\u0275pipe(4, "translate");
     \u0275\u0275text(5, "\n                ");
     \u0275\u0275elementStart(6, "mat-icon");
-    \u0275\u0275text(7, "add");
+    \u0275\u0275text(7, "playlist_add");
     \u0275\u0275elementEnd();
     \u0275\u0275text(8, "\n            ");
     \u0275\u0275elementEnd();
@@ -3932,7 +3932,7 @@ function HeaderComponent_Conditional_16_Template(rf, ctx) {
     \u0275\u0275pipe(12, "translate");
     \u0275\u0275text(13, "\n                ");
     \u0275\u0275elementStart(14, "mat-icon");
-    \u0275\u0275text(15, "sort");
+    \u0275\u0275text(15, "swap_vert");
     \u0275\u0275elementEnd();
     \u0275\u0275text(16, "\n            ");
     \u0275\u0275elementEnd();
@@ -3941,7 +3941,7 @@ function HeaderComponent_Conditional_16_Template(rf, ctx) {
     \u0275\u0275pipe(19, "translate");
     \u0275\u0275text(20, "\n                ");
     \u0275\u0275elementStart(21, "mat-icon");
-    \u0275\u0275text(22, "filter_alt");
+    \u0275\u0275text(22, "filter_list");
     \u0275\u0275elementEnd();
     \u0275\u0275text(23, "\n            ");
     \u0275\u0275elementEnd();
@@ -4004,7 +4004,7 @@ function HeaderComponent_Conditional_16_Template(rf, ctx) {
     });
     \u0275\u0275text(57, "\n                    ");
     \u0275\u0275elementStart(58, "mat-icon");
-    \u0275\u0275text(59, "date_range");
+    \u0275\u0275text(59, "calendar_month");
     \u0275\u0275elementEnd();
     \u0275\u0275text(60, "\n                    ");
     \u0275\u0275elementStart(61, "span");
@@ -4022,7 +4022,7 @@ function HeaderComponent_Conditional_16_Template(rf, ctx) {
     });
     \u0275\u0275text(67, "\n                    ");
     \u0275\u0275elementStart(68, "mat-icon");
-    \u0275\u0275text(69, "date_range");
+    \u0275\u0275text(69, "calendar_month");
     \u0275\u0275elementEnd();
     \u0275\u0275text(70, "\n                    ");
     \u0275\u0275elementStart(71, "span");
@@ -4067,7 +4067,7 @@ function HeaderComponent_Conditional_16_Template(rf, ctx) {
     });
     \u0275\u0275text(95, "\n                    ");
     \u0275\u0275elementStart(96, "mat-icon");
-    \u0275\u0275text(97, "attach_file");
+    \u0275\u0275text(97, "upload_file");
     \u0275\u0275elementEnd();
     \u0275\u0275text(98, "\n                    ");
     \u0275\u0275elementStart(99, "span");
@@ -4105,7 +4105,7 @@ function HeaderComponent_Conditional_16_Template(rf, ctx) {
     });
     \u0275\u0275text(117, "\n                    ");
     \u0275\u0275elementStart(118, "mat-icon");
-    \u0275\u0275text(119, "text_format");
+    \u0275\u0275text(119, "content_paste");
     \u0275\u0275elementEnd();
     \u0275\u0275text(120, "\n                    ");
     \u0275\u0275elementStart(121, "span");
@@ -4126,7 +4126,7 @@ function HeaderComponent_Conditional_16_Template(rf, ctx) {
     });
     \u0275\u0275text(130, "\n                    ");
     \u0275\u0275elementStart(131, "mat-icon");
-    \u0275\u0275text(132, "video_library");
+    \u0275\u0275text(132, "live_tv");
     \u0275\u0275elementEnd();
     \u0275\u0275text(133, "\n                    ");
     \u0275\u0275elementStart(134, "span");
@@ -4145,7 +4145,7 @@ function HeaderComponent_Conditional_16_Template(rf, ctx) {
     });
     \u0275\u0275text(141, "\n                    ");
     \u0275\u0275elementStart(142, "mat-icon");
-    \u0275\u0275text(143, "dashboard");
+    \u0275\u0275text(143, "tv");
     \u0275\u0275elementEnd();
     \u0275\u0275text(144, "\n                    ");
     \u0275\u0275elementStart(145, "span");
@@ -4412,7 +4412,7 @@ var HeaderComponent = class _HeaderComponent {
       TranslateModule,
       AsyncPipe,
       TranslatePipe
-    ], styles: ["\n\n[_nghost-%COMP%] {\n  background: #1b1c1c;\n  color: #fff;\n  display: flex;\n  width: 100%;\n  --mat-toolbar-standard-height: 100px;\n}\n.logo[_ngcontent-%COMP%] {\n  flex: 1 1 100px;\n}\n.logo[_ngcontent-%COMP%]   img[_ngcontent-%COMP%] {\n  height: 100px;\n}\n.main[_ngcontent-%COMP%] {\n  place-content: center flex-start;\n  align-self: center;\n  flex-direction: column;\n  box-sizing: border-box;\n  display: flex;\n  flex: 1 1 100%;\n  max-width: 100%;\n}\n.main[_ngcontent-%COMP%]   .title[_ngcontent-%COMP%] {\n  font-size: 1em;\n}\n.main[_ngcontent-%COMP%]   .subtitle[_ngcontent-%COMP%] {\n  color: #999;\n  font-size: 0.7em;\n  margin-top: 5px;\n  text-wrap: pretty;\n}\n.menu[_ngcontent-%COMP%] {\n  place-content: center;\n  align-self: center;\n  display: flex;\n}\n.filter-container[_ngcontent-%COMP%] {\n  padding: 0 10px;\n}\n.add-playlist-btn[_ngcontent-%COMP%] {\n  background-color: #3f51b5;\n  color: #fff;\n}\n.dropdown-menu-header[_ngcontent-%COMP%] {\n  padding: 0 16px;\n  margin: 8px 0;\n  font-size: 12px;\n  font-weight: 500;\n}\n.active-sort[_ngcontent-%COMP%] {\n  background-color: rgb(48, 48, 48);\n}\n.check-icon[_ngcontent-%COMP%] {\n  margin-left: 8px;\n}\n@media (max-width: 599px) {\n  .subtitle[_ngcontent-%COMP%] {\n    display: none;\n  }\n  .logo[_ngcontent-%COMP%]    > img[_ngcontent-%COMP%] {\n    height: 48px;\n  }\n}"] });
+    ], styles: ["\n\n[_nghost-%COMP%] {\n  background: #1b1c1c;\n  color: #fff;\n  display: flex;\n  width: 100%;\n  --mat-toolbar-standard-height: 100px;\n}\n.logo[_ngcontent-%COMP%] {\n  flex: 1 1 100px;\n}\n.logo[_ngcontent-%COMP%]   img[_ngcontent-%COMP%] {\n  height: 100px;\n}\n.main[_ngcontent-%COMP%] {\n  place-content: center flex-start;\n  align-self: center;\n  flex-direction: column;\n  box-sizing: border-box;\n  display: flex;\n  flex: 1 1 100%;\n  max-width: 100%;\n}\n.main[_ngcontent-%COMP%]   .title[_ngcontent-%COMP%] {\n  font-size: 1em;\n}\n.main[_ngcontent-%COMP%]   .subtitle[_ngcontent-%COMP%] {\n  color: #999;\n  font-size: 0.7em;\n  margin-top: 5px;\n  text-wrap: pretty;\n}\n.menu[_ngcontent-%COMP%] {\n  place-content: center;\n  align-self: center;\n  display: flex;\n}\n[data-test-id=add-playlist][_ngcontent-%COMP%], [data-test-id=sort-playlists][_ngcontent-%COMP%], [data-test-id=filter-playlist-by-type][_ngcontent-%COMP%] {\n  display: none !important;\n}\n.filter-container[_ngcontent-%COMP%] {\n  padding: 0 10px;\n}\n.add-playlist-btn[_ngcontent-%COMP%] {\n  background-color: #3f51b5;\n  color: #fff;\n}\n.dropdown-menu-header[_ngcontent-%COMP%] {\n  padding: 0 16px;\n  margin: 8px 0;\n  font-size: 12px;\n  font-weight: 500;\n}\n.active-sort[_ngcontent-%COMP%] {\n  background-color: rgb(48, 48, 48);\n}\n.check-icon[_ngcontent-%COMP%] {\n  margin-left: 8px;\n}\n@media (max-width: 599px) {\n  .subtitle[_ngcontent-%COMP%] {\n    display: none;\n  }\n  .logo[_ngcontent-%COMP%]    > img[_ngcontent-%COMP%] {\n    height: 48px;\n  }\n}"] });
   }
 };
 (() => {
@@ -4448,7 +4448,7 @@ var HeaderComponent = class _HeaderComponent {
                 [matTooltip]="'HOME.URL_UPLOAD.ADD_PLAYLIST' | translate"
                 data-test-id="add-playlist"
             >
-                <mat-icon>add</mat-icon>
+                <mat-icon>playlist_add</mat-icon>
             </button>
             <!-- Sort button -->
             <button
@@ -4457,7 +4457,7 @@ var HeaderComponent = class _HeaderComponent {
                 [matTooltip]="'HOME.SORT_PLAYLISTS' | translate"
                 data-test-id="sort-playlists"
             >
-                <mat-icon>sort</mat-icon>
+                <mat-icon>swap_vert</mat-icon>
             </button>
             <button
                 mat-icon-button
@@ -4465,85 +4465,16 @@ var HeaderComponent = class _HeaderComponent {
                 [matTooltip]="'HOME.FILTER_BY_TYPE' | translate"
                 data-test-id="filter-playlist-by-type"
             >
-                <mat-icon>filter_alt</mat-icon>
+                <mat-icon>filter_list</mat-icon>
             </button>
-            @if (isElectron || isTauri) {
-                <button
-                    mat-icon-button
-                    (click)="openSettings()"
-                    [matTooltip]="'MENU.SETTINGS' | translate"
-                    data-test-id="open-settings"
-                >
-                    <mat-icon>settings</mat-icon>
-                </button>
-            } @else {
-                <button
-                    mat-icon-button
-                    [matMenuTriggerFor]="menu"
-                    [attr.aria-label]="'MENU.OPEN' | translate"
-                    data-test-id="pwa-menu"
-                >
-                    <mat-icon>menu</mat-icon>
-                </button>
-                <mat-menu #menu="matMenu">
-                    @if (isHome) {
-                        <button
-                            mat-menu-item
-                            [attr.aria-label]="'MENU.SETTINGS_ARIA' | translate"
-                            (click)="openSettings()"
-                            data-test-id="pwa-open-settings"
-                        >
-                            <mat-icon>settings</mat-icon>
-                            <span>{{ 'MENU.SETTINGS' | translate }}</span>
-                        </button>
-                        <mat-divider></mat-divider>
-                    }
-                    <button
-                        mat-menu-item
-                        [attr.aria-label]="'MENU.SUPPORT_ARIA' | translate"
-                        (click)="openUrl('https:///github.com/4gray/iptvnator')"
-                    >
-                        <mat-icon>recommend</mat-icon>
-                        <span>GitHub</span>
-                    </button>
-                    <button
-                        mat-menu-item
-                        [attr.aria-label]="'MENU.BUG_REPORT' | translate"
-                        (click)="
-                            openUrl('https://github.com/4gray/iptvnator/issues')
-                        "
-                    >
-                        <mat-icon>bug_report</mat-icon>
-                        <span>{{ 'MENU.BUG_REPORT' | translate }}</span>
-                    </button>
-                    <mat-divider></mat-divider>
-                    <button
-                        mat-menu-item
-                        [attr.aria-label]="'MENU.WHAT_IS_NEW' | translate"
-                        (click)="setDialogVisibility(true)"
-                    >
-                        <mat-icon>new_releases</mat-icon>
-                        <span>{{ 'MENU.WHAT_IS_NEW' | translate }}</span>
-                    </button>
-                    <button
-                        mat-menu-item
-                        [attr.aria-label]="'MENU.SUPPORT_PROJECT' | translate"
-                        (click)="openUrl('https://github.com/sponsors/4gray')"
-                    >
-                        <mat-icon>savings</mat-icon>
-                        <span>{{ 'MENU.SUPPORT_PROJECT' | translate }}</span>
-                    </button>
-                    <mat-divider></mat-divider>
-                    <button
-                        mat-menu-item
-                        [attr.aria-label]="'MENU.ABOUT_ARIA' | translate"
-                        (click)="openAboutDialog()"
-                    >
-                        <mat-icon>info</mat-icon>
-                        <span>{{ 'MENU.ABOUT' | translate }}</span>
-                    </button>
-                </mat-menu>
-            }
+            <button
+                mat-icon-button
+                (click)="openSettings()"
+                [matTooltip]="'MENU.SETTINGS' | translate"
+                data-test-id="open-settings"
+            >
+                <mat-icon>settings</mat-icon>
+            </button>
             <!-- Sort menu -->
             <mat-menu #sortMenu="matMenu">
                 <div
@@ -4580,7 +4511,7 @@ var HeaderComponent = class _HeaderComponent {
                         isSortActive(SortBy.DATE_ADDED, SortOrder.DESC)
                     "
                 >
-                    <mat-icon>date_range</mat-icon>
+                    <mat-icon>calendar_month</mat-icon>
                     <span>{{ 'HOME.SORT_OPTIONS.NEWEST' | translate }}</span>
                 </button>
                 <button
@@ -4590,7 +4521,7 @@ var HeaderComponent = class _HeaderComponent {
                         isSortActive(SortBy.DATE_ADDED, SortOrder.ASC)
                     "
                 >
-                    <mat-icon>date_range</mat-icon>
+                    <mat-icon>calendar_month</mat-icon>
                     <span>{{ 'HOME.SORT_OPTIONS.OLDEST' | translate }}</span>
                 </button>
             </mat-menu>
@@ -4624,7 +4555,7 @@ var HeaderComponent = class _HeaderComponent {
                     [attr.aria-label]="'HOME.TABS.FILE_UPLOAD' | translate"
                     (click)="opedAddPlaylistDialog('file')"
                 >
-                    <mat-icon>attach_file</mat-icon>
+                    <mat-icon>upload_file</mat-icon>
                     <span>{{ 'HOME.TABS.FILE_UPLOAD' | translate }}</span>
                 </button>
                 <button
@@ -4640,7 +4571,7 @@ var HeaderComponent = class _HeaderComponent {
                     [attr.aria-label]="'HOME.TABS.TEXT_IMPORT' | translate"
                     (click)="opedAddPlaylistDialog('text')"
                 >
-                    <mat-icon>text_format</mat-icon>
+                    <mat-icon>content_paste</mat-icon>
                     <span>{{ 'HOME.TABS.TEXT_IMPORT' | translate }}</span>
                 </button>
                 <mat-divider></mat-divider>
@@ -4649,7 +4580,7 @@ var HeaderComponent = class _HeaderComponent {
                     [attr.aria-label]="'HOME.TABS.XTREME_IMPORT' | translate"
                     (click)="opedAddPlaylistDialog('xtream')"
                 >
-                    <mat-icon>video_library</mat-icon>
+                    <mat-icon>live_tv</mat-icon>
                     <span>{{ 'HOME.TABS.XTREME_IMPORT' | translate }}</span>
                 </button>
                 <button
@@ -4659,7 +4590,7 @@ var HeaderComponent = class _HeaderComponent {
                     "
                     (click)="opedAddPlaylistDialog('stalker')"
                 >
-                    <mat-icon>dashboard</mat-icon>
+                    <mat-icon>tv</mat-icon>
                     <span>{{
                         'HOME.TABS.STALKER_PORTAL_IMPORT' | translate
                     }}</span>
@@ -4676,7 +4607,7 @@ var HeaderComponent = class _HeaderComponent {
         [options]="options"
     />
 }
-`, styles: ["/* src/app/shared/components/header/header.component.scss */\n:host {\n  background: #1b1c1c;\n  color: #fff;\n  display: flex;\n  width: 100%;\n  --mat-toolbar-standard-height: 100px;\n}\n.logo {\n  flex: 1 1 100px;\n}\n.logo img {\n  height: 100px;\n}\n.main {\n  place-content: center flex-start;\n  align-self: center;\n  flex-direction: column;\n  box-sizing: border-box;\n  display: flex;\n  flex: 1 1 100%;\n  max-width: 100%;\n}\n.main .title {\n  font-size: 1em;\n}\n.main .subtitle {\n  color: #999;\n  font-size: 0.7em;\n  margin-top: 5px;\n  text-wrap: pretty;\n}\n.menu {\n  place-content: center;\n  align-self: center;\n  display: flex;\n}\n.filter-container {\n  padding: 0 10px;\n}\n.add-playlist-btn {\n  background-color: #3f51b5;\n  color: #fff;\n}\n.dropdown-menu-header {\n  padding: 0 16px;\n  margin: 8px 0;\n  font-size: 12px;\n  font-weight: 500;\n}\n.active-sort {\n  background-color: rgb(48, 48, 48);\n}\n.check-icon {\n  margin-left: 8px;\n}\n@media (max-width: 599px) {\n  .subtitle {\n    display: none;\n  }\n  .logo > img {\n    height: 48px;\n  }\n}\n"] }]
+`, styles: ["/* src/app/shared/components/header/header.component.scss */\n:host {\n  background: #1b1c1c;\n  color: #fff;\n  display: flex;\n  width: 100%;\n  --mat-toolbar-standard-height: 100px;\n}\n.logo {\n  flex: 1 1 100px;\n}\n.logo img {\n  height: 100px;\n}\n.main {\n  place-content: center flex-start;\n  align-self: center;\n  flex-direction: column;\n  box-sizing: border-box;\n  display: flex;\n  flex: 1 1 100%;\n  max-width: 100%;\n}\n.main .title {\n  font-size: 1em;\n}\n.main .subtitle {\n  color: #999;\n  font-size: 0.7em;\n  margin-top: 5px;\n  text-wrap: pretty;\n}\n.menu {\n  place-content: center;\n  align-self: center;\n  display: flex;\n}\n[data-test-id=add-playlist], [data-test-id=sort-playlists], [data-test-id=filter-playlist-by-type] {\n  display: none !important;\n}\n.filter-container {\n  padding: 0 10px;\n}\n.add-playlist-btn {\n  background-color: #3f51b5;\n  color: #fff;\n}\n.dropdown-menu-header {\n  padding: 0 16px;\n  margin: 8px 0;\n  font-size: 12px;\n  font-weight: 500;\n}\n.active-sort {\n  background-color: rgb(48, 48, 48);\n}\n.check-icon {\n  margin-left: 8px;\n}\n@media (max-width: 599px) {\n  .subtitle {\n    display: none;\n  }\n  .logo > img {\n    height: 48px;\n  }\n}\n"] }]
   }], () => [{ type: ActivatedRoute }, { type: MatDialog }, { type: DataService }, { type: Router }, { type: Store }, { type: WhatsNewService }, { type: SortService }], { title: [{
     type: Input
   }], subtitle: [{

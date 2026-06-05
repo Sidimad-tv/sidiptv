@@ -1302,13 +1302,13 @@ var require_Reflect = __commonJS({
 var require_package = __commonJS({
   "package.json"(exports, module) {
     module.exports = {
-      name: "iptvnator",
-      version: "1.0.0-beta.7",
-      description: "IPTV player application.",
-      homepage: "https://github.com/4gray/iptvnator",
+      name: "sidiptv",
+      version: "1.0.0",
+      description: "S!d!m@d-iptv - Free IPTV player.",
+      homepage: "https://github.com/Sidimad-tv/sidiptv",
       author: {
-        name: "4gray",
-        email: "fourgray@proton.me"
+        name: "Sidimad-tv",
+        email: ""
       },
       keywords: [
         "angular",
@@ -1334,7 +1334,7 @@ var require_package = __commonJS({
         "e2e:ci": "npx playwright test --retries 3 --workers=1",
         version: "conventional-changelog -i CHANGELOG.md -p angular -s -r 0 && git add CHANGELOG.md",
         lint: "ng lint",
-        "build-pwa": "ng build -c production --base-href /iptvnator --deploy-url /iptvnator/",
+        "build-pwa": "ng build -c production --base-href / --deploy-url /",
         tauri: "tauri"
       },
       dependencies: {

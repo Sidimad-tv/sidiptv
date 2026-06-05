@@ -7477,7 +7477,7 @@ var DbStores;
   DbStores2["Playlists"] = "playlists";
 })(DbStores || (DbStores = {}));
 var dbConfig = {
-  name: "iptvnator",
+  name: "sidiptv",
   version: 1,
   objectStoresMeta: [
     {

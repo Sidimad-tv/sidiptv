@@ -12869,7 +12869,7 @@ function VideoPlayerComponent_Conditional_14_Conditional_5_Conditional_5_Templat
     \u0275\u0275listener("click", function VideoPlayerComponent_Conditional_14_Conditional_5_Conditional_5_Template_a_click_7_listener() {
       \u0275\u0275restoreView(_r6);
       const ctx_r0 = \u0275\u0275nextContext(3);
-      return \u0275\u0275resetView(ctx_r0.openUrl("https://github.com/4gray/iptvnator/wiki/What-is-mpv-video-player-and-how-to-install-it-on-different-operating-systems%3F"));
+      return \u0275\u0275resetView(ctx_r0.openUrl("https://github.com/Sidimad-tv/sidiptv/wiki"));
     });
     \u0275\u0275text(8, "Installation instructions");
     \u0275\u0275elementEnd();
@@ -13273,7 +13273,7 @@ var VideoPlayerComponent = class _VideoPlayerComponent {
                                 style="cursor: pointer"
                                 (click)="
                                     openUrl(
-                                        'https://github.com/4gray/iptvnator/wiki/What-is-mpv-video-player-and-how-to-install-it-on-different-operating-systems%3F'
+                                        'https://github.com/Sidimad-tv/sidiptv/wiki'
                                     )
                                 "
                                 >Installation instructions</a

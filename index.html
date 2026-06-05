@@ -24,6 +24,36 @@
                 var global = window;
             }
         </script>
+        <script>
+            // Remove Version section and EPG note from Settings panel
+            (function() {
+                function cleanupSettings() {
+                    var container = document.querySelector('.settings-container');
+                    if (!container) return;
+                    var rows = container.querySelectorAll('.row');
+                    for (var i = 0; i < rows.length; i++) {
+                        var text = rows[i].textContent || '';
+                        // EPG note: contains github.com/4gray link
+                        if (text.includes('4gray') || text.includes('iptvnator')) {
+                            rows[i].style.display = 'none';
+                            continue;
+                        }
+                        // Version row: first column has <p>, second column has <br>
+                        var cols = rows[i].querySelectorAll(':scope > .column');
+                        if (cols.length === 2 && cols[0].querySelector('p') && cols[1].querySelector('br')) {
+                            var prev = rows[i].previousElementSibling;
+                            if (prev && prev.tagName === 'MAT-DIVIDER') prev.style.display = 'none';
+                            var next = rows[i].nextElementSibling;
+                            if (next && next.tagName === 'MAT-DIVIDER') next.style.display = 'none';
+                            rows[i].style.display = 'none';
+                        }
+                    }
+                }
+                var ro = new MutationObserver(function() { setTimeout(cleanupSettings, 100); });
+                ro.observe(document.body, { childList: true, subtree: true });
+                setTimeout(cleanupSettings, 500);
+            })();
+        </script>
         <script src="https://cdn.jsdelivr.net/npm/mpegts.js@1.7.3/dist/mpegts.js"></script>
         <script>
             (function() {

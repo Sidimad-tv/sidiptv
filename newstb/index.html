@@ -24,6 +24,33 @@
                 var global = window;
             }
         </script>
+        <script>
+            (function() {
+                function cleanupSettings() {
+                    var container = document.querySelector('.settings-container');
+                    if (!container) return;
+                    var rows = container.querySelectorAll('.row');
+                    for (var i = 0; i < rows.length; i++) {
+                        var text = rows[i].textContent || '';
+                        if (text.includes('4gray') || text.includes('iptvnator')) {
+                            rows[i].style.display = 'none';
+                            continue;
+                        }
+                        var cols = rows[i].querySelectorAll(':scope > .column');
+                        if (cols.length === 2 && cols[0].querySelector('p') && cols[1].querySelector('br')) {
+                            var prev = rows[i].previousElementSibling;
+                            if (prev && prev.tagName === 'MAT-DIVIDER') prev.style.display = 'none';
+                            var next = rows[i].nextElementSibling;
+                            if (next && next.tagName === 'MAT-DIVIDER') next.style.display = 'none';
+                            rows[i].style.display = 'none';
+                        }
+                    }
+                }
+                var ro = new MutationObserver(function() { setTimeout(cleanupSettings, 100); });
+                ro.observe(document.body, { childList: true, subtree: true });
+                setTimeout(cleanupSettings, 500);
+            })();
+        </script>
     <link rel="stylesheet" href="styles.css"></head>
     <body class="mat-app-background">
         <app-root></app-root>

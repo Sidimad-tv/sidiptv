@@ -553,9 +553,14 @@ async function playItem(item, mode, all) {
   plyInfo.textContent = item.name || '';
   state.selCh = item;
 
+  function stripPrefix(s) {
+    if (!s) return '';
+    var m = s.match(/^(?:ffmpeg|auto|ffrt|ff)\s+(.+)/i);
+    return m ? m[1].trim() : s.trim();
+  }
   var cmd = item.url || item.cmd || '';
-  var url = cmd;
-  var proxiedUrl = cmd;
+  var url = stripPrefix(cmd);
+  var proxiedUrl = url;
 
   try {
     if (state.clientType === 'stalker' && cmd && state.client && state.client.createLink) {
@@ -569,6 +574,12 @@ async function playItem(item, mode, all) {
       if (mode === 'tv') url = await state.client.getLiveUrl(item.stream_id, item.extension || 'm3u8');
       else if (mode === 'vod') url = await state.client.getVodUrl(item.stream_id, item.extension || 'mp4');
     } catch(e) { console.log('[Play] xtream url error:', e); }
+  }
+
+  /* Ensure extension=ts in URL for stalker TS streams if missing */
+  if (state.clientType === 'stalker' && url && url.indexOf('extension=ts') === -1 && url.indexOf('http') === 0) {
+    var sep = url.indexOf('?') === -1 ? '?' : '&';
+    url += sep + 'extension=ts';
   }
 
   proxiedUrl = pUrl(url);
